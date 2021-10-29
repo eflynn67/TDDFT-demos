@@ -1,2 +1,2 @@
 # TDDFT-demos
-Holding bin for TDDFT demo codes
+Holding bin for numerical TDDFT demo solvers written in Python. The purpose of this repo is purely educational.  Contained are example codes to perform calculations for various nuclear systems using different energy density functionals and to test different numerical algorithms and techniques. Code displayed here is not parallelized as one might find for more professional DFT codes. 
