@@ -1,5 +1,4 @@
 import numpy as np
-
 def yuk():
     return
 def coulomb():
