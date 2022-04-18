@@ -1,6 +1,13 @@
 import numpy as np
 from scipy.special import genlaguerre
 from scipy.special import assoc_laguerre
+from init import *
+
+
+
+'''
+NOTE: HYDROGEN WAVEFUNCTIONS NOT WORKING
+'''
 def get_wfHO_radial(n,l):
     '''
     Parameters
@@ -64,11 +71,29 @@ def initWfs(N,Z,name='HO'):
 
     '''
     if name == 'HO':
-        psi = get_wfHO_radial(n,l)
-        return psi
+        psi_array = np.zeros((2,nmax,lmax+1,len(spin),len(grid)))
+        for q in range(2):
+            for n in range(nmax):
+                for l in range(lmax+1):
+                    for s in range(len(spin)):
+                        #print(q,n,l,s)
+                        psi_func = get_wfHO_radial(n, l)#wf.initWfs(name='hydrogen',n=0,l=0)
+                        eval_psi = psi_func(grid)
+                        psi_array[q,n,l,s] = eval_psi/np.linalg.norm(eval_psi)
+        return psi_array
     elif name == 'hydrogen':
-        psi = get_WfHydrogen_radial(n,l)
-        return psi
+        psi_array = np.zeros((2,nmax,lmax+1,len(spin),len(grid)))
+        for q in range(2):
+            for n in range(nmax):
+                for l in range(lmax+1):
+                    if n == 0:
+                        l = 0
+                    for s in range(len(spin)):
+                        #print(q,n+1,l,s)
+                        psi_func = get_WfHydrogen_radial(n+1, l)#wf.initWfs(name='hydrogen',n=0,l=0)
+                        eval_psi = psi_func(grid)
+                        psi_array[q,n,l,s] = eval_psi/np.linalg.norm(eval_psi)
+        return psi_array
     else:
         raise ValueError('Only available wavfunctions are radial HO and hydrogen')
     return None
