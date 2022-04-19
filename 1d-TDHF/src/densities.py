@@ -1,4 +1,5 @@
 import numpy as np
+from numba import jit
 from init import * 
 
 def rho(psi_array,r):

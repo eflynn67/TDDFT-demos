@@ -3,8 +3,8 @@ Z = 2
 interaction = 'bkn'
 coulomb = True
 initial_wf = 'HO'
-lmax = 1  # max l value for nucleus
-nmax = 2 # max n value for nucleus. starts from n=1 which is taken to be the ground state.
+lmax = 0  # max l value for nucleus
+nmax = 1 # max n value for nucleus. starts from n=1 which is taken to be the ground state.
 
 ## domain properties
 lb = 10**-10 # left boundary
