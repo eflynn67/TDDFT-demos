@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import toeplitz
 from numba import jit
 from init import *
 import matplotlib.pyplot as plt
@@ -65,7 +66,7 @@ def solve_Numerov(psi_init,E0,dE,V):
     '''
     # Construct g-function
     nbox = len(V)
-    njoin = 700
+    njoin = 600#int((nbox-1)/2)
     g_array = E0 + V
     
     psi_l_init = psi_init.copy()
@@ -121,30 +122,56 @@ def solve_Numerov(psi_init,E0,dE,V):
     #print(f'Right Converged in {counter} Iterations.')
     print('right energy',Er)
     print('max psi val right', max(psi_l))
-    if abs(El-Er) < 10**-15:
+    if abs(El-Er) < 10**-9:
         E = El
     else: 
         raise Exception('Right and Left Energies dont match. One of theme did not converge. Stopping Solve')
-    print(psi_r[nbox-100],psi_r[nbox-11],psi_r[nbox-22],psi_r[nbox-33],psi_r[nbox-44],psi_r[nbox-55])
-    #plt.plot(grid,psi_l)
+    #print(psi_r[nbox-100],psi_r[nbox-11],psi_r[nbox-22],psi_r[nbox-33],psi_r[nbox-44],psi_r[nbox-55])
+    plt.plot(grid[:njoin],psi_l[:njoin])
     #plt.plot(grid[1500:nbox-1],psi_r[1500:nbox-1])
-    #plt.show()
+    plt.show()
     
     zero_pad = np.zeros(len(grid))
     psi = np.concatenate((psi_l[:njoin],zero_pad[njoin:]))
+    '''
     norm = 0.0
     for i in range(0,nbox):
         norm += psi[i]**2
     norm = np.sqrt(norm)
     print(norm)
     psi = psi/norm
-    return El,psi/norm
+    '''
+    return El,psi#/norm
 
-def MatrixSolve():
-    energy = None
-    psi_array = None
-    rho = None
-    return energy, psi_array,rho
+#@jit(nopython=True)
+def getNumerov_matrix():
+    off_diag = np.zeros(nbox)
+    off_diag[1] = 1
+    A = (-2*np.identity(nbox) + toeplitz(off_diag))/step_size**2
+    B = (10*np.identity(nbox) + toeplitz(off_diag))/12
+    B_inv = np.linalg.inv(B)
+    B_invA = np.matmul(B_inv,A)
+    return B_invA
+
+@jit(nopython=True,parallel=True)
+def MatrixNumerovSolve(H):
+    
+    
+    evals, evects = np.linalg.eigh(H)
+    # sort the evals and evects
+    idx = np.argsort(evals)
+    evals = evals[idx]
+    evects = evects[:,idx]
+    # Just return the ground state.
+    E0 = evals[-1]
+    psi = evects[:,-1]
+    norm = 0.0
+    for i in range(len(grid)):
+        norm += psi[i]**2
+    norm = np.sqrt(norm)
+    #norm = np.linalg.norm(psi)
+    psi = psi/norm
+    return E0, psi
 
 def ImgTimeSolve():
     energy = None

@@ -27,6 +27,8 @@ def rho(psi_array):
                 #print('n',n,'l',l,'s',s,'j',j)
                 rho_p += 1/(4*np.pi*grid**2)*(2*j+1)*psi_array[0][n][l][s]**2
                 rho_n += 1/(4*np.pi*grid**2)*(2*j+1)*psi_array[1][n][l][s]**2
+    rho_p[0] = 0.0
+    rho_n[0] = 0.0
     rho_tot = rho_p + rho_n
     return rho_tot,rho_p,rho_n
 

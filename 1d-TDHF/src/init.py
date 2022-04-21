@@ -10,3 +10,4 @@ vws = np.zeros(2)
 vws[0] = -51.+33.*(N-Z)/nt
 vws[1] = -51.-33.*(N-Z)/nt
 grid = np.arange(lb,rb+step_size,step_size)
+nbox = len(grid)

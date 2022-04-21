@@ -40,23 +40,43 @@ def yukArr(rhoArr):
         I = 0.0 
         for j in range(i):
             rp = grid[j]
-            rs = max(r,rp)
-            I += aV0*(rhoArr[j]*rp/(rs*r))*np.exp((r**2 + rp**2)/aV0)*np.sinh(2*r*rp/aV0)*step_size
+            I += rhoArr[j]*(np.exp(-abs(r-rp)/a)/abs(r-rp))*step_size
         Vyuk[i] = I
     return Vyuk*aV0
 
 @jit(nopython=True,parallel=True)
-def coulombArr(rhoArr):
-    Vc = np.zeros(len(grid))
+def yukArr2(rhoArr):
+    Vyuk = np.zeros(len(grid))
     for i,r in enumerate(grid):
-        I = 0.0 
+        I = 0.0
+        for thetap in np.arange(0,np.pi,step_size):
+            for j in range(i):
+                rp = grid[j]
+                num = np.exp(-np.sqrt(r**2 + rp**2 - 2*r*rp*np.cos(thetap))/a)*np.sin(thetap)*rp**2
+                denom = np.sqrt(r**2 + rp**2 - 2*r*rp*np.cos(thetap))
+                I += rhoArr[j]*(num/denom)*step_size
+        Vyuk[i] = I
+    return Vyuk*aV0
+@jit(nopython=True,parallel=True)
+def coulombArr(rhoArr):
+    Vc12 = np.zeros(len(grid))
+    Vcinf = 0.0
+    for i,r in enumerate(grid):
+        I = 0.0
         for j in range(i):
             rp = grid[j]
-            rs = max(r,rp)
-            I += (rhoArr[j]*(rp**2)/rs)*step_size
-        Vc[i] = I
+            I += (rhoArr[j]*(rp**2)/r)*step_size - rhoArr[j]*rp*step_size
+        Vc12[i] = I 
+    for i in range(0,len(grid)):
+        Vcinf += rhoArr[i]*grid[i]*step_size
+    
+    Vc = 4*np.pi*e2*(Vc12 + Vcinf)
     return Vc*4*np.pi*e2
-        
+
+def centriforceArr(l):
+    result = l*(l+1)/grid**2
+    result[0] = 0.0
+    return result
 '''
 @jit(nopython=True,parallel=True)
 def coulomb(rhoArr,r):
