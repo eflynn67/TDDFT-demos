@@ -67,7 +67,7 @@ def pot(x,alpha):
 
     '''
     return alpha*x**2
-@jit(nopython=True)
+#@jit(nopython=True)
 def solve_wf_Numerov(psi,g_array,init_side):
     nbox = len(g_array)
     if init_side == 'left':
@@ -78,30 +78,31 @@ def solve_wf_Numerov(psi,g_array,init_side):
             a2 = 2*(1 - ((5*h**2)/12)*g_array[i-1])
             a3 = -(1+ ((h**2)/12)*g_array[i-2])
             psi[i] = (a2*psi[i-1] + a3*psi[i-2])/a1
-        norm = 0.0
-        for i in range(0,nbox):
-            norm += psi[i]**2
-        norm = np.sqrt(norm)
-        psi = psi/norm
+        #norm = 0.0
+        #for i in range(0,nbox):
+        #    norm += psi[i]**2
+        #norm = np.sqrt(norm)
+        #psi = psi/norm
         return psi
     elif init_side =='right':
-        psi = psi[::-1]
-        psi[0] = 0
-        psi[1] = 10**-3
-        for i in np.arange(2,nbox,1):
+        #psi = psi[::-1]
+        psi[nbox-1] = 0
+        psi[nbox-2] = 10**-3
+        for i in np.arange(nbox-3,-1,-1):
             a1 = 1.0 + ((h**2)/12)*g_array[i]
-            a2 = 2*(1 - ((5*h**2)/12)*g_array[i-1])
-            a3 = -(1+ ((h**2)/12)*g_array[i-2])
-            psi[i] = (a2*psi[i-1] + a3*psi[i-2])/a1
-        norm = 0.0
-        for i in range(0,nbox):
-            norm += psi[i]**2
-        norm = np.sqrt(norm)
-        return psi[::-1]/norm
+            a2 = 2*(1 - ((5*h**2)/12)*g_array[i+1])
+            a3 = -(1+ ((h**2)/12)*g_array[i+2])
+            psi[i] = (a2*psi[i+1] + a3*psi[i+2])/a1
+            
+        #norm = 0.0
+        #for i in range(0,nbox):
+        #    norm += psi[i]**2
+        #norm = np.sqrt(norm)
+        return psi#/norm
     else:
         print('Invalid Wavefunction Initialization')
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def solve_E(psi_init,E0,dE,V):
     '''
     Solves the ODE y''(x) + g(x,E)y(x) = 0 where g(x,E) = E - V(x). E is the eigenvalue of the diff operator.
@@ -163,7 +164,6 @@ def solve_E(psi_init,E0,dE,V):
     P1 = psi_r[0] # grab left side boundary 
     dE = dE_init #reinit the dE iterator
     Er = E0 + dE
-    
     counter = 0
     while abs(dE) > 10**-12:
         g_array = Er - V

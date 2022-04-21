@@ -72,6 +72,7 @@ def initWfs(N,Z,name='HO'):
     '''
     if name == 'HO':
         psi_array = np.zeros((2,nmax,lmax+1,len(spin),len(grid)))
+        energies_array = np.zeros((2,nmax,lmax+1,len(spin),1))
         for q in range(2):
             for n in range(nmax):
                 for l in range(lmax+1):
@@ -80,9 +81,10 @@ def initWfs(N,Z,name='HO'):
                         psi_func = get_wfHO_radial(n, l)#wf.initWfs(name='hydrogen',n=0,l=0)
                         eval_psi = psi_func(grid)
                         psi_array[q,n,l,s] = eval_psi/np.linalg.norm(eval_psi)
-        return psi_array
+        return psi_array,energies_array
     elif name == 'hydrogen':
         psi_array = np.zeros((2,nmax,lmax+1,len(spin),len(grid)))
+        energies_array = np.zeros((2,nmax,lmax+1,len(spin),1))
         for q in range(2):
             for n in range(nmax):
                 for l in range(lmax+1):
@@ -93,7 +95,11 @@ def initWfs(N,Z,name='HO'):
                         psi_func = get_WfHydrogen_radial(n+1, l)#wf.initWfs(name='hydrogen',n=0,l=0)
                         eval_psi = psi_func(grid)
                         psi_array[q,n,l,s] = eval_psi/np.linalg.norm(eval_psi)
-        return psi_array
+        return psi_array,energies_array
+    elif name=='test':
+        psi_array = np.zeros((2,nmax,lmax+1,len(spin),len(grid)))
+        energies_array = np.zeros((2,nmax,lmax+1,len(spin),1))
+        return psi_array,energies_array
     else:
         raise ValueError('Only available wavfunctions are radial HO and hydrogen')
     return None

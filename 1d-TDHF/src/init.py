@@ -3,8 +3,7 @@ from inputs import *
 ### initilization file for arrays that are used throughout the package
 #exec(open("~/TDDFT-demos/1d-TDHF/src/inputs.py").read())
 e2 = 1.4399784 # e^2 charge in MeV fm
-mp = 938.28 # mass of proton in MeV/c^2
-mn = 939.57## mass of neutron in MeV/c^2
+hb2m0 = 20.735530
 spin = np.array([.5,-.5])
 nt = N + Z
 vws = np.zeros(2)

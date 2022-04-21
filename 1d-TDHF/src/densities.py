@@ -2,7 +2,7 @@ import numpy as np
 from numba import jit
 from init import * 
 
-def rho(psi_array,r):
+def rho(psi_array):
     '''
     Calculates the density at points r for protons and neutrons
 

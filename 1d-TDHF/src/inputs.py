@@ -5,13 +5,15 @@ coulomb = True
 initial_wf = 'HO'
 lmax = 0  # max l value for nucleus
 nmax = 1 # max n value for nucleus. starts from n=1 which is taken to be the ground state.
+E_guess = -50 # initial HF energy in MeV
+
 
 ## domain properties
-lb = 10**-10 # left boundary
-rb = 20 # right boundary
+lb = 10**-20 # left boundary
+rb = 60 # right boundary
 step_size = .01
 
-## Interaction parameter
+## Interaction parameters
 a = 0.45979 # length parameter for yukawa potential (fm)
 aV0 = -166.9239 # strength of yukwawa potential (MeV)
 
