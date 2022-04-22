@@ -18,8 +18,8 @@ def h_BKN(rho):
     returns the functional value of h at a particular point r.
 
     '''
-    yuk = yukArr(rho)
-    h = .75*t1*rho + 0.1875*t3*rho**2 + yuk
+    yuk = yukArr2(rho) /step_size
+    h = .75*t1*rho /step_size + 0.1875*t3*rho**2 /step_size**2 + yuk 
 
     return h
 

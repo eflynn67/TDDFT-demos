@@ -78,9 +78,13 @@ def initWfs(N,Z,name='HO'):
                 for l in range(lmax+1):
                     for s in range(len(spin)):
                         print(q,n,l,s)
-                        psi_func = get_wfHO_radial(n,l) 
+                        j = l + spin[s]
+                        psi_func = get_wfHO_radial(n,j) 
                         eval_psi = psi_func(grid)
-                        psi_array[q,n,l,0] = eval_psi/np.linalg.norm(eval_psi)
+                        #norm = 0.0
+                        #for i in range(len(grid)):
+                        #    norm +=  eval_psi[i]**2 *step_size
+                        psi_array[q,n,l,s] = eval_psi/np.linalg.norm(eval_psi)
         return psi_array,energies_array
     elif name == 'hydrogen':
         psi_array = np.zeros((2,nmax+1,lmax+1,len(spin),len(grid)))
