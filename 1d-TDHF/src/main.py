@@ -43,7 +43,7 @@ plt.legend()
 plt.show()
 ## Construct initial g_array. Every wavefunction will have one of these functions
 ## associated with it. 
-fArr = np.zeros((2,nmax,lmax+1,len(spin),len(grid)))
+fArr = np.zeros((2,nmax+1,lmax+1,len(spin),len(grid)))
 ### 
 E_array = []
 D = solvers.getNumerov_matrix()
@@ -55,27 +55,28 @@ for i in range(1,len(grid)-1):
 print(f'A = {A}')
 for nter in range(0,nIter):
     for q in range(0,2):
-        for n in range(nmax):
+        for n in range(nmax+1):
             for l in range(lmax+1):
                 for s in range(len(spin)):
                     j = l + spin[s]
+                    #print(q,n,l,s,j)
                     ## fill gArr with initial values for each nucleus. We are using units where m_p = m_n = 1.
                     if q == 0:
-                        fArr[q][n][l][s] = (hArr + V_c) - fields.centriforceArr(l)*hb2m0 #
+                        fArr[q][n][l][s] = (hArr + V_c) + fields.centriforceArr(l)*hb2m0#
                     else: 
-                        fArr[q][n][l][s] = hArr - fields.centriforceArr(l)*hb2m0
+                        fArr[q][n][l][s] = hArr + fields.centriforceArr(l)*hb2m0
                     #plt.plot(grid,fArr[q][n][l][s],label='f function')
                     #plt.legend()
                     #plt.show()
                     V_matrix = np.diag(fArr[q][n][l][s])
-                    H = D + V_matrix
+                    H = D - V_matrix/hb2m0
                     #E_0,psi_array[q][n][l][s] = solvers.solve_Numerov(psi_array[q][n][l][s],E,dE,fArr[q][n][l][s])
                     energies[q][n][l][s],psi_array[q][n][l][s] = solvers.MatrixNumerovSolve(H)
-                    energies[q][n][l][s] = -1*energies[q][n][l][s]*hb2m0
+                    energies[q][n][l][s] = energies[q][n][l][s]
                     
                     
                     
-                    print(energies[q][n][l][s][0])
+                    print(-1*energies[q][n][l][s][0]*hb2m0)
                     #plt.plot(grid[:600],psi_array[q][n][l][s][:600])
                     #plt.xlabel('r')
                     #plt.ylabel(r'$\psi(r)$')
@@ -112,14 +113,14 @@ for nter in range(0,nIter):
     ### recalculate hamiltonian with new densities
     hArr = functionals.h_BKN(rhoArr[0])         
 
-    #plt.plot(grid,V_c)
-    #plt.xlabel('r')
-    #plt.ylabel(r'$Vc$')
-    #plt.title(f'{nter}')
-    #plt.show()    
+    plt.plot(grid,V_c)
+    plt.xlabel('r')
+    plt.ylabel(r'$Vc$')
+    plt.title(f'{nter}')
+    plt.show()    
     
-    #plt.plot(grid,hArr)
-    #plt.xlabel('r')
-    #plt.ylabel(r'$h$')
-    #plt.title(f'{nter}')
-    #plt.show() 
+    plt.plot(grid,hArr)
+    plt.xlabel('r')
+    plt.ylabel(r'$h$')
+    plt.title(f'{nter}')
+    plt.show() 

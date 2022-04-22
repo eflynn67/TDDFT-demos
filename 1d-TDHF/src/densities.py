@@ -20,7 +20,7 @@ def rho(psi_array):
     '''
     rho_p = np.zeros(len(grid))
     rho_n = np.zeros(len(grid))
-    for n in range(nmax):
+    for n in range(nmax+1):
         for l in range(lmax+1):
             for s in range(len(spin)):
                 j = l + spin[s]
