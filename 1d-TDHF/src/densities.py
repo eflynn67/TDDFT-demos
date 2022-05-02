@@ -2,7 +2,7 @@ import numpy as np
 from numba import jit
 from init import * 
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def rho(psi_array):
     '''
     Calculates the density at points r for protons and neutrons
@@ -23,15 +23,22 @@ def rho(psi_array):
     rho_n = np.zeros(len(grid))
     for n in range(nmax+1):
         for l in range(lmax+1):
+            jArr = []
             for s in range(len(spin)):
-                j = l + spin[s]
-                #print('n',n,'l',l,'s',s,'j',j)
-                rho_p += ((2*j+1)*psi_array[0][n][l][s]**2) /(4*np.pi*grid**2)
-                rho_n += ((2*j+1)*psi_array[1][n][l][s]**2) /(4*np.pi*grid**2)
+                if l == 0:
+                    j = .5
+                    jArr.append(j)
+                else:
+                    j = l + spin[s]
+                    jArr.append(j)
+            jArr = set(jArr)
+            for i,j in enumerate(jArr):
+                #print('n',n,'l',l,'j',j)
+                rho_p += ((2*j+1)*psi_array[0][n][l][i]**2) /(4*np.pi*grid**2)
+                rho_n += ((2*j+1)*psi_array[1][n][l][i]**2) /(4*np.pi*grid**2)
+    
     rho_p[0] = 0.0
     rho_n[0] = 0.0
-    rho_p = rho_p
-    rho_n = rho_n
     rho_tot = rho_p + rho_n
     return rho_tot,rho_p,rho_n
 

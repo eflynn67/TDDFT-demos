@@ -34,9 +34,9 @@ def solve_wf_Numerov(psi,g_array,init_side):
             psi[i] = (a2*psi[i+1] + a3*psi[i+2])/a1
         #norm = 0.0
         #for i in range(0,nbox):
-        #    norm += psi[i]**2
+        #    norm += psi[i]**2 * step_size
         #norm = np.sqrt(norm)
-        return psi
+        return psi#/norm
     else:
         print('Invalid Wavefunction Initialization')
 
@@ -67,14 +67,17 @@ def solve_Numerov(psi_init,E0,dE,V):
     '''
     # Construct g-function
     nbox = len(V)
-    njoin = 700#int((nbox-1)/2)
-    g_array = -E0/hb2m0 + V
+    njoin = int((nbox-1)/2)
+    g_array = E0/hb2m0 + V
     
     psi_l_init = psi_init.copy()
     
     psi_l = solve_wf_Numerov(psi_l_init,g_array,init_side='left')
-    #plt.plot(grid,psi_l)
-    #plt.show()
+    plt.plot(grid,psi_l)
+    plt.title('Forward Solution')
+    plt.xlabel('r (fm)')
+    plt.ylabel(r'$\psi$')
+    plt.savefig('forwards_sol_ex.pdf')
     P1 = psi_l[nbox-1] # grab right side boundary 
     dE_init = dE
     El = E0 + dE
@@ -82,7 +85,6 @@ def solve_Numerov(psi_init,E0,dE,V):
     counter = 0
     ### evolve the left initilized one.
     while abs(dE) > 10**-12:
-    #for p in range(0,200):
         #print(El)
         g_array = El + V
         psi_l = solve_wf_Numerov(psi_l,g_array,init_side='left')
@@ -97,20 +99,22 @@ def solve_Numerov(psi_init,E0,dE,V):
     print('left energy',El)
     
     ### Reinitialize the wavefunctions and arrays to solve for the right side initialized wavefunctions
-    g_array = -E0/hb2m0 + V
+    g_array = E0/hb2m0 + V
     
     psi_r_init = psi_init.copy()
     psi_r = solve_wf_Numerov(psi_r_init,g_array,init_side='right')
-    #plt.plot(grid,psi_r)
-    #plt.title('right')
-    #plt.show()
+    plt.plot(grid,psi_r)
+    plt.title('Backwards Solution')
+    plt.xlabel('r (fm)')
+    plt.ylabel(r'$\psi$')
+    plt.savefig('backwards_sol_ex.pdf')
+    plt.show()
     P1 = psi_r[0] # grab left side boundary 
     dE = dE_init #reinit the dE iterator
     Er = E0 + dE
     
     counter = 0
-    while abs(dE) > 10**-12:
-    #for p in range(0,1):    
+    while abs(dE) > 10**-12: 
         g_array = Er + V
         psi_r = solve_wf_Numerov(psi_r,g_array,init_side='right')
         P2 = psi_r[0] # grab left side boundary value again
@@ -122,19 +126,13 @@ def solve_Numerov(psi_init,E0,dE,V):
     # Now merge the right and left solutions together.
     #print(f'Right Converged in {counter} Iterations.')
     print('right energy',Er)
-    #print('max psi val right', max(psi_l))
     if abs(El-Er) < 10**-9:
         E = El
     else: 
         raise Exception('Right and Left Energies dont match. One of theme did not converge. Stopping Solve')
-    #print(psi_r[nbox-100],psi_r[nbox-11],psi_r[nbox-22],psi_r[nbox-33],psi_r[nbox-44],psi_r[nbox-55])
-    #plt.plot(grid[:njoin],psi_l[:njoin])
-    #plt.plot(grid[1500:nbox-1],psi_r[1500:nbox-1])
-    #plt.show()
     
     zero_pad = np.zeros(len(grid))
-    psi = np.concatenate((psi_l[:njoin],zero_pad[njoin:]))
-    
+    psi = np.concatenate((psi_l[:njoin],psi_r[njoin:]))
     norm = 0.0
     for i in range(0,nbox):
         norm += psi[i]**2 * step_size
@@ -155,17 +153,18 @@ def getNumerov_matrix():
 
 #@jit(nopython=True)
 def MatrixNumerovSolve(H):
-    evals, evects = sci.linalg.eigh(H)
-    # sort the evals and evects
-    #idx = np.argsort(evals)
-    #evals = evals[idx]
-    #evects = evects[:,idx]
+    evals, evects = sci.linalg.eigh(H,subset_by_index=[0,1])
+    
     # Just return the ground state. since we are multiplything through by -1/hb2m0, the eval
     # we want should be the largest eval
-    E0 = evals[0]
+    #print(evals)
+    E0 = evals[0] ## seems to return the eigens as positive?
     psi = evects[:,0]
-    
-    psi = psi#/np.sqrt(norm)
+    #print(psi)
+    norm = 0.0
+    for k in range(len(grid)):
+        norm +=  psi[k]**2 *step_size
+    psi = psi/np.sqrt(norm)
     return E0, psi
 
 def ImgTimeSolve():

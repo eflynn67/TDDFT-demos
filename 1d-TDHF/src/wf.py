@@ -45,7 +45,7 @@ def get_WfHydrogen_radial(n,l):
         return func
     return psi
 
-def initWfs(N,Z,name='HO'):
+def initWfs(name='HO'):
     '''
     Function initializes wavefunctions for proton and neutron according to shell model
 
@@ -76,15 +76,22 @@ def initWfs(N,Z,name='HO'):
         for q in range(2):
             for n in range(nmax+1):
                 for l in range(lmax+1):
+                    jArr = np.zeros(2)
                     for s in range(len(spin)):
-                        print(q,n,l,s)
-                        j = l + spin[s]
+                        #print(q,n,l,s)
+                        if l == 0: 
+                            j = .5
+                            jArr[s] = j
+                        else:
+                            j = l + spin[s]
+                    #jArr = np.unique(jArr)
+                    for i,j in enumerate(jArr):    
                         psi_func = get_wfHO_radial(n,j) 
                         eval_psi = psi_func(grid)
-                        #norm = 0.0
-                        #for i in range(len(grid)):
-                        #    norm +=  eval_psi[i]**2 *step_size
-                        psi_array[q,n,l,s] = eval_psi/np.linalg.norm(eval_psi)
+                        norm = 0.0
+                        for k in range(len(grid)):
+                            norm +=  eval_psi[k]**2 *step_size
+                        psi_array[q,n,l,i] = eval_psi/np.sqrt(norm)#/np.linalg.norm(eval_psi)
         return psi_array,energies_array
     elif name == 'hydrogen':
         psi_array = np.zeros((2,nmax+1,lmax+1,len(spin),len(grid)))
@@ -92,13 +99,22 @@ def initWfs(N,Z,name='HO'):
         for q in range(2):
             for n in range(nmax+1):
                 for l in range(lmax+1):
-                    if n == 0:
-                        l = 0
+                    jArr = np.zeros(2)
                     for s in range(len(spin)):
-                        #print(q,n+1,l,s)
-                        psi_func = get_wfHO_radial(n=n+q,l=s+l)
+                        print(q,n,l,s)
+                        if l == 0: 
+                            j = .5
+                            jArr[s] = j
+                        else:
+                            j = l + spin[s]
+                    #jArr = np.unique(jArr)
+                    for i,j in enumerate(jArr):    
+                        psi_func = get_WfHydrogen_radial(n+2, l)
                         eval_psi = psi_func(grid)
-                        psi_array[q,n,l,s] = eval_psi/np.linalg.norm(eval_psi)
+                        norm = 0.0
+                        for k in range(len(grid)):
+                            norm +=  eval_psi[k]**2 *step_size
+                        psi_array[q,n,l,i] = eval_psi/np.sqrt(norm)#/np.linalg.norm(eval_psi)
         return psi_array,energies_array
     elif name=='test':
         psi_array = np.zeros((2,nmax,lmax+1,len(spin),len(grid)))

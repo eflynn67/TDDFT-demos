@@ -15,7 +15,7 @@ def getNZ(rhoArr):
 #@jit(nopython=True)
 def getRadi(rhoArr):
     # Correction values taken from Alex Browns Nuclear structure notes (2020)
-    Rcorr_sqr = 0.879**2 + (N/Z)*(-0.116)**2 
+    Rcorr_sqr = 0.879**2 #+ (N/Z)*(-0.116)**2 
     Rnsqr = 0.0 
     Rpsqr = 0.0
     npro,nneu = getNZ(rhoArr)
@@ -27,7 +27,7 @@ def getRadi(rhoArr):
     
     Rp = np.sqrt(Rnsqr/npro)
     Rn = np.sqrt(Rpsqr/nneu)
-    Rch = np.sqrt(Rpsqr/npro +Rcorr_sqr )
+    Rch = np.sqrt(Rpsqr/npro + Rcorr_sqr )
     return Rp,Rn,Rch
 
     

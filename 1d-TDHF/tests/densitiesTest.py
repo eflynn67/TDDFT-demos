@@ -5,36 +5,38 @@ from scipy.special import assoc_laguerre
 sys.path.insert(0, '../src')
 import wf
 import densities
+import utilities
 from init import *
-'''
-psi_array = np.zeros((2,nmax,lmax+1,len(spin),len(grid)))
-for q in range(2):
-    for n in range(nmax):
-        for l in range(lmax+1):
-            for s in range(len(spin)):
-                print(q,n,l,s)
-                psi_func = wf.get_wfHO_radial(n, l)#wf.initWfs(name='hydrogen',n=0,l=0)
-                eval_psi = psi_func(grid)
-                psi_array[q,n,l,s] = eval_psi/np.linalg.norm(eval_psi)
-'''
-psi_array = wf.initWfs(N,Z,name='HO')
-plt.plot(grid,psi_array[0][0][1][1])
+
+psi_array,energies  = wf.initWfs(name='HO')
+print(psi_array.shape)
+plt.plot(grid,psi_array[0][0][0][1])
 plt.title('a wavefunction')
 plt.show()
 
 
-rho = densities.rho(psi_array,grid)
+rhoArr = densities.rho(psi_array)
+print(np.linalg.norm(rhoArr[0]))
+npro,nneu = utilities.getNZ(rhoArr)
+print(f'Total number of nucleons: {nt}')
+print(f'Integrated number of nucleons: {npro+nneu}')
+print(f'Total number of protons: {Z}')
+print(f'Integrated number of protons: {npro}')
+print(f'Total number of neutrons: {N}')
+print(f'Integrated number of Neutrons: {nneu}')
+#Rp,Rn,Rch =  utilities.getRadi(rhoArr)
 
-plt.plot(grid,rho[0])
+#print(f'Rp = {Rp}')
+#print(f'Rn = {Rn}')
+#print(f'Rch = {Rch}')
+plt.plot(grid,rhoArr[0])
 plt.title('total rho')
 plt.show()
 
 plt.title('proton rho')
-rho = densities.rho(psi_array,grid)
-plt.plot(grid,rho[1])
+plt.plot(grid,rhoArr[1])
 plt.show()
 
 plt.title('neutron rho')
-rho = densities.rho(psi_array,grid)
-plt.plot(grid,rho[1])
+plt.plot(grid,rhoArr[2])
 plt.show()
