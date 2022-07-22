@@ -1,0 +1,1 @@
+### Functions to calculate the fields def gaussian(x):    V_i = [-1.489,0.4]    gamma_i = [2.0,10.0]    V = np.zeros()    for i in range(1,3):                    return 
