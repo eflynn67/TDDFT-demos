@@ -60,3 +60,16 @@ def V_quartic(x,alpha):
 
     '''
     return alpha*(x**2 -1)**2
+
+def V_gaussian(x):
+    if isinstance(x, np.ndarray) == False:
+        x = np.array(x)
+    if len(x.shape) >=1:
+        V = np.zeros(nbox)
+    else:
+        V = 0
+    V_const = [V_1,V_2]
+    gamma_const = [gamma_1,gamma_2]
+    for i in range(0,2):
+        V += (V_const[i]/(np.sqrt(np.pi)*gamma_const[i]))*np.exp(-(x/gamma_const[i])**2)
+    return V

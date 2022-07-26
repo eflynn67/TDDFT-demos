@@ -1,14 +1,28 @@
-interaction = 'GP'
-coulomb = False
+## Note: hbar = 1 in this solver.
+## To run the solver, basically change all of the parameters you want here and 
+## run main.py in the src file.
+coulomb = False # not used anywhere lol.
 niter = 10 # number of self consistent iterations
+prop_order = 4 # expansion order of the propagator e^(-i \Delta t h(t)).
 
-## domain properties
-lb = -20 # left boundary
-rb = 20 # right boundary
-step_size = .05
-delta_t = .01
-prop_order = 10 # expansion order of the propagator.
+## Domain properties
+lb = -10 # left boundary
+rb = 10 # right boundary
+step_size = .2 #spatial grid spacing
+delta_t = .02 # time step length
+nt_steps = 500 #number of time steps 
+
+
+
 ## Interaction parameters
-mass = 1.0
-alpha = 1.0
-q = 1.0
+mass = 1.0 
+alpha = 1.0 # interaction strength for quartic and HO potentials (if being used)
+q = 1.0 # interaction strength for |psi|^2 term in GP Hamiltonian
+
+## Interaction parameters for gaussian potential taken from Barrier penetration
+## paper Levit, Negele, and Patiel (1980) (if being used.)
+V_1 = 0.0#-1.489
+V_2 = 0.0#0.4
+V_3 = 0.0#.5
+gamma_1 = 2.0
+gamma_2 = 10.0
