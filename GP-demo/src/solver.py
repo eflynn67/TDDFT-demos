@@ -18,6 +18,7 @@ def MatrixSolve_SC(H_func,psiArr,psiStarArr):
     for l in range(niter): 
         H = H_func(evects[0],conj_evect,mass,alpha,q)
         energies,evects = sci.linalg.eigh(H,subset_by_index = [0,0])
+        #energies,evects = sci.linalg.eig(H)
         evects = evects.T
         norm = 1.0/np.linalg.norm(evects[0])
         conj_evect = np.conjugate(evects[0])
