@@ -65,7 +65,7 @@ def V_gaussian(x):
     if isinstance(x, np.ndarray) == False:
         x = np.array(x)
     if len(x.shape) >=1:
-        V = np.zeros(nbox)
+        V = np.zeros(x.shape[0])
     else:
         V = 0
     V_const = [V_1,V_2]
@@ -73,3 +73,4 @@ def V_gaussian(x):
     for i in range(0,2):
         V += (V_const[i]/(np.sqrt(np.pi)*gamma_const[i]))*np.exp(-(x/gamma_const[i])**2)
     return V
+    

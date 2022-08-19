@@ -3,6 +3,7 @@ import scipy as sci
 from scipy import optimize
 from scipy import special
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 from init import *
 from inputs import *
@@ -12,6 +13,12 @@ import potentials as pots
 import solver
 def abs_sqr(z):
     return np.real(z)**2 + np.imag(z)**2
+
+def animate(i, x=[], y=[]):
+    plt.cla()
+    x.append(i)
+    y.append(random.randint(0, 10))
+    plt.plot(x, y)
 
 psi_func = wf.getPsi_x(0,1,0) ## GS harmonic oscillator.
 
@@ -23,6 +30,8 @@ psiStarArr = np.conjugate(psiArr)
 H_func = matrix.get_H_func(name='gaussian')
 E_GS,evect_GS = solver.MatrixSolve_SC(H_func,psiArr,psiStarArr)
 evect_GS = evect_GS/np.linalg.norm(evect_GS)
+
+
 
 
 
@@ -64,3 +73,9 @@ for j in range(nt_steps):
     plt.show()
     
 print('End')
+
+
+if __name__ == "__main__":
+    fig = plt.figure()
+    ani = FuncAnimation(fig, animate, interval=700)
+    plt.show()

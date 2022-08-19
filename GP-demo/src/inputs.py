@@ -9,7 +9,7 @@ prop_order = 4 # expansion order of the propagator e^(-i \Delta t h(t)).
 lb = -10 # left boundary
 rb = 10 # right boundary
 step_size = .2 #spatial grid spacing
-delta_t = .02 # time step length
+delta_t = .01 # time step length
 nt_steps = 500 #number of time steps 
 
 
@@ -21,8 +21,8 @@ q = 1.0 # interaction strength for |psi|^2 term in GP Hamiltonian
 
 ## Interaction parameters for gaussian potential taken from Barrier penetration
 ## paper Levit, Negele, and Patiel (1980) (if being used.)
-V_1 = 0.0#-1.489
-V_2 = 0.0#0.4
-V_3 = 0.0#.5
+V_1 = -1.489
+V_2 = 0.4
+V_3 = 0.5
 gamma_1 = 2.0
 gamma_2 = 10.0

@@ -7,5 +7,6 @@ hb2m0 = 20.735530
 
 #spin = np.array([.5,-.5])
 grid = np.arange(lb,rb+step_size,step_size)
+largegrid = np.arange(lb,rb+step_size,step_size)
 t_steps = np.linspace(0,2,nt_steps)
 nbox = len(grid)
