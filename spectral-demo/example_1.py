@@ -85,18 +85,57 @@ def get2nd_Derivative(x):
             d1[i][j] = C[j][0]
             d2[i][j] = C[j][1]
     return d1,d2
-            
-h = .1   
-grid = np.arange(-1,1,h)
 
+def c_coeff(l,N):
+    if l == 0 or l == N:
+        return 2.0
+    else: 
+        return 1.0
+def getDerMatrix(N,CPnts):
+    '''
+    Analytic solution taken from Spectral Methods in Fluid Dynamics (1988).
+    Assumes you are taking the collocation points at the Gauss-Lobatto points
+    
+    i labels the collocation point, j labels C
+    Parameters
+    ----------
+    N : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
+    D = np.zeros((N,N))
+    for i in range(N):
+        for j in range(N):
+            if i == 0 and j == 0:
+                D[i][j] = (2 * N**2 + 1)/6
+            elif i == N - 1 and j == N - 1:
+                D[i][j] = -(2 * N**2 + 1)/6
+            elif i == j and j <= N -1 and j >= 1 and i <= N -1 and i >= 1 :
+                D[i][j] = - CPnts[j]/(2*(1 - CPnts[j]**2))
+            else:
+                print(i,j)
+                D[i][j] = c_coeff(i,N)*(-1)**(i+j) /(c_coeff(j,N)*(CPnts[i] - CPnts[j])) 
+    return D
+h = .1
+grid = np.arange(-1,1,h)
+print(len(grid))
 N = 4 # number of chebyshev polynomials to use.
 k = 5 # number of collocation ponts
+#evaluation points 
+#idx =  np.round(np.linspace(1, len(grid)-1, num=5)).astype(int)
+#x_eval = grid[idx]
+#print(x_eval)
 collocationPnts = getGaussLobatto(k,N)
-#print(getWeights(collocationPnts[1],collocationPnts,2,k))
-D_1,D_2 = get2nd_Derivative(collocationPnts)
+D_1 = getDerMatrix(N, collocationPnts)
 print(D_1)
+#print(getWeights(collocationPnts[1],collocationPnts,2,k))
+#D_1,D_2 = get2nd_Derivative(collocationPnts)
+#print(D_1)
 
-#C_mat = np.zeros()
 
 
 
