@@ -2,16 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import eval_chebyt
 '''
-Here we cover two examples:
+Here we cover enforcing Neumann and mixed boundary conditions. The ODE we focus 
+on is the previous ODE from example 1
 
-1) y'' + x y' = x 
-with Dirichelt BCs
+1) y'' + y' - y = 2
 
-Next, we tackle a non-linear equation: Painleve I
+We solve this with 
+a) Neumann BC y'(0) = 1 and y'(1) = 1
 
-y'' = 6y^2 + x
-with Dirichlet BCS y(0) = 0 and y(1) = 0. This is a different beast. We use the self consistent approach
-to solving this equation. We start our initial guess using x_{j}(x_{j}-1)
+b) Mixed BC y(0) = 0 and y'(0) = 1
 '''
 
 def getGaussLobatto(N,interval=(-1,1)):
@@ -90,73 +89,5 @@ I = np.identity(N+1)
 # for the ODE
 L = D_2 + D_1*collocationPnts 
 
-# construct force function
-F = collocationPnts - y0*L[:,0] - y1*L[:,-1]
 
-
-L = np.delete(L,0,0)
-L = np.delete(L,-1,-1)
-L = np.delete(L,0,-1)
-L = np.delete(L,-1,0)
-
-sol = np.linalg.solve(L,F[1:N])
-sol = np.concatenate([[y0],sol,[y1]])
-
-
-plt.plot(collocationPnts,sol,label='Numerical N='+str(N))
-
-plt.title('Problem 1')
-plt.legend()
-plt.show()
-
-##############################################################################
-### Part 2
-
-interval = (0,1)
-## boundary values y(-1) = y0 = a and y(1)=y1 = b
-y0 = 0
-y1 = 0
-
-alpha = .1 # mixing parameter
-
-nIters = 15
-
-collocationPnts = getGaussLobatto(N,interval=interval)
-
-D_1 = getDerMatrix(collocationPnts)
-D_2 = np.matmul(D_1,D_1) # CAREFUL: this doesn't always hold.
-
-I = np.identity(N+1)
-# Now that we have the derivative matrix, we just need to construct the matrix 
-# for the ODE
-L = D_2 
-# construct force function
-F = np.zeros((nIters+1,len(L)))
-sol_n = np.zeros((nIters+1,len(L)))
-sol_n[0] = collocationPnts*(collocationPnts - 1)
-F[0] = 6*sol_n[0]**2 + collocationPnts - y0*L[:,0] - y1*L[:,-1]
-
-
-L_buffer = L.copy()
-L_buffer = np.delete(L_buffer,0,0)
-L_buffer = np.delete(L_buffer,-1,-1)
-L_buffer = np.delete(L_buffer,0,-1)
-L_buffer = np.delete(L_buffer,-1,0)
-for i in np.arange(0,nIters,1):
-    sol_buf = np.linalg.solve(L_buffer,F[i][1:N])
-    sol_buf = np.concatenate([[y0],sol_buf,[y1]])
-    if i <= 5:    
-        sol_n[i+1] = alpha*sol_n[i] + (1-alpha)*sol_buf
-    else: 
-        sol_n[i+1] = sol_buf
-    F[i+1] =   6*sol_n[i+1]**2 + collocationPnts - y0*L[:,0] - y1*L[:,-1]
-    if i != 0:
-        print('Error:',np.linalg.norm(sol_n[i+1]-sol_n[i]))
-
-
-
-plt.plot(collocationPnts,sol,label='Problem 1 Numerical N='+str(N))
-plt.plot(collocationPnts,sol_n[-1],label=' Problem 2 Numerical N='+str(N))
-plt.title('Problem 2')
-plt.legend()
-plt.show()
+##
