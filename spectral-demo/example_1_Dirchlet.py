@@ -190,7 +190,7 @@ L = np.delete(L,-1,0)
 
 sol = np.linalg.solve(L,F[1:N])
 # rescale the solution and coordinates
-collocationPnts = collocationPnts*alpha1 + 1
+collocationPnts = collocationPnts*alpha1 + alpha2
 sol = np.concatenate([[y0],sol,[y1]])
 error = np.abs(sol - exact_sol2(collocationPnts))
 print('Problem 2 Max error:', max(error))
@@ -240,7 +240,7 @@ L = np.delete(L,-1,0)
 
 sol = np.linalg.solve(L,F[1:N])
 # rescale the solution and coordinates
-collocationPnts = collocationPnts*alpha1 + 1
+collocationPnts = collocationPnts*alpha1 + alpha2
 sol = np.concatenate([[y0],sol,[y1]])
 
 error = np.abs(sol - exact_sol3(collocationPnts))
