@@ -58,52 +58,52 @@ def getDerMatrix(CPnts,BC = 'dirichlet'):
 N = 30 # number of basis functions
 h = .1
 
-
-interval = (0,2*np.pi)
-grid = np.arange(interval[0],interval[1]+h,h)
-## boundary values y(-1) = y0 = a and y(1)=y1 = b
-y0 = 0
-y1 = 0
-collocationPnts = getGaussLobatto(N,interval=interval)
-
-## Rescale so the points are in [-1,1]
-alpha1 = .5*(max(collocationPnts) - min(collocationPnts))
-alpha2 = .5*(max(collocationPnts) + min(collocationPnts))
-#transform the coordinates 
-collocationPnts = collocationPnts/alpha1  - alpha2/alpha1
-
-D_1 = getDerMatrix(collocationPnts)
-D_2 = np.matmul(D_1,D_1)
-
-I = np.identity(N+1)
-# Now that we have the derivative matrix, we just need to construct the matrix 
-# for the ODE
-
-L = D_2/alpha1**2
-
-# construct F
-F = np.full(len(L),0) #- y0*L[:,0] - y1*L[:,-1]
-
-# enforce BCs by removing first and last rows and columns. This is the boundary
-# bordering technique.
-L = np.delete(L,0,0)
-L = np.delete(L,-1,-1)
-L = np.delete(L,0,-1)
-L = np.delete(L,-1,0)
-
-
-
-
-#sol = np.linalg.solve(L,F)
-# rescale the solution and coordinates
-#collocationPnts = collocationPnts*alpha1  + alpha2
-#sol = np.concatenate([[y0],sol,[y1]])
-
-
-eigs,evects = np.linalg.eig(L)
-collocationPnts = collocationPnts*alpha1  + alpha2
-print(eigs)
-plt.plot(collocationPnts[1:N],np.real(evects[:,-1]))
-plt.show()
-#plt.plot(collocationPnts,sol)
-#plt.show()
+for N in np.arange(20,100,20):
+    interval = (0,2*np.pi)
+    grid = np.arange(interval[0],interval[1]+h,h)
+    ## boundary values y(-1) = y0 = a and y(1)=y1 = b
+    y0 = 0
+    y1 = 0
+    collocationPnts = getGaussLobatto(N,interval=interval)
+    
+    ## Rescale so the points are in [-1,1]
+    alpha1 = .5*(max(collocationPnts) - min(collocationPnts))
+    alpha2 = .5*(max(collocationPnts) + min(collocationPnts))
+    #transform the coordinates 
+    collocationPnts = collocationPnts/alpha1  - alpha2/alpha1
+    
+    D_1 = getDerMatrix(collocationPnts)
+    D_2 = np.matmul(D_1,D_1)
+    
+    I = np.identity(N+1)
+    # Now that we have the derivative matrix, we just need to construct the matrix 
+    # for the ODE
+    
+    L = D_2/alpha1**2
+    
+    # construct F
+    F = np.full(len(L),0) #- y0*L[:,0] - y1*L[:,-1]
+    
+    # enforce BCs by removing first and last rows and columns. This is the boundary
+    # bordering technique.
+    L = np.delete(L,0,0)
+    L = np.delete(L,-1,-1)
+    L = np.delete(L,0,-1)
+    L = np.delete(L,-1,0)
+    
+    
+    
+    
+    #sol = np.linalg.solve(L,F)
+    # rescale the solution and coordinates
+    #collocationPnts = collocationPnts*alpha1  + alpha2
+    #sol = np.concatenate([[y0],sol,[y1]])
+    
+    
+    eigs,evects = np.linalg.eig(L)
+    collocationPnts = collocationPnts*alpha1  + alpha2
+    print(eigs)
+    plt.plot(collocationPnts[1:N],np.real(evects[:,-1]))
+    plt.show()
+    #plt.plot(collocationPnts,sol)
+    #plt.show()

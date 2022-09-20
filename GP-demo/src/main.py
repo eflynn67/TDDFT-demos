@@ -11,6 +11,73 @@ import wf
 import potentials as pots
 import solver
 
+sys.path.insert(0, '../../src/methods')
+import spec
+def getExactLambda(n,mass,alpha):
+    '''
+    Exact eigenvalues of the HO equation. -f''(x) + k x^2 f(x) = 2 m E f(x)
+    Lambda = 2 m E  
+    E = (n + .5) \omega 
+    \alpha = m^2 \omega^2 
+    \omega = \sqrt{alpha/m^2}
+    Parameters
+    ----------
+    n : float
+        principle quantum number. float integers
+    omega : float
+        oscillator frequency.
+
+    Returns
+    -------
+    float
+        oscillator energy 2mE. 
+    '''
+    return 2*mass*(.5 + n)*np.sqrt(alpha/mass**2)
+N = 300
+interval = (-100,100)
+CPnts = spec.GaussLobatto(interval=interval).chebyshev(N) #Note these are NOT mapped to [-1,1] 
+#CPnts_unit = spec.coord_transforms(interval=interval).affine(CPnts)
+
+
+H_constructor = matrix.spec_H_func(N, CPnts,interval)
+H = H_constructor.HO(alpha)
+
+evals, evects = np.linalg.eig(H)
+idx = evals.argsort()  
+evals = evals[idx]
+evects = evects[:,idx]
+gs_exact = getExactLambda(0,mass,alpha)
+print('ground state energy error',evals[0]-gs_exact)
+psi_0 = evects[:,0]/np.linalg.norm(evects[:,0])
+plt.plot(CPnts[1:N],psi_0)
+
+plt.show()
+Hk = np.matmul(H,H)
+print(np.max(Hk))
+test_psi_0 = np.matmul(Hk,psi_0)
+#print(test_psi_0)
+test_evals ,test_evects= np.linalg.eig(Hk)
+test_idx = test_evals.argsort()  
+test_evals = test_evals[idx]
+test_evects = test_evects[:,idx]
+#print(test_evals)
+plt.plot(CPnts[1:N],test_psi_0)
+plt.show()
+#plt.plot(CPnts[1:N],test_evects[:,0])
+#plt.xlim([-10,10])
+#plt.show()
+
+'''
+psi_series = np.zeros((nt_steps+2,len(CPnts)-2),dtype=complex)
+psi_series[0] = evects[:,0]/np.linalg.norm(evects[:,0]).copy()
+for i in range(nt_steps+1):
+    psi_series[i+1] = solver.prop(psi_series[i],H,delta_t)
+    #print(max(np.real(psi_series[i+1])))
+    plt.plot(CPnts[1:N],np.real(psi_series[i+1]))
+    plt.show()
+
+
+
 psi_func = wf.getPsi_x(0,1,0) ## GS harmonic oscillator.
 
 psiArr = psi_func(grid)
@@ -69,3 +136,4 @@ for j in range(nt_steps):
     plt.show()
     
 print('End')
+'''

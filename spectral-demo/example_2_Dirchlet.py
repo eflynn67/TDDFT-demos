@@ -81,7 +81,7 @@ y1 = 0
 
 
 collocationPnts = getGaussLobatto(N,interval=interval)
-
+print(collocationPnts)
 D_1 = getDerMatrix(collocationPnts)
 D_2 = np.matmul(D_1,D_1) # CAREFUL: this doesn't always hold.
 

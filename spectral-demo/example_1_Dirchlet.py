@@ -110,7 +110,7 @@ def getDerMatrix(CPnts,BC = 'dirichlet'):
 h = .1
 grid = np.arange(-1,1+h,h) 
 N = 20 # number of basis functions .
-
+'''
 ##############################################################################
 ### Part 1
 
@@ -186,7 +186,7 @@ L = np.delete(L,-1,-1)
 L = np.delete(L,0,-1)
 L = np.delete(L,-1,0)
 
-
+print(L)
 
 sol = np.linalg.solve(L,F[1:N])
 # rescale the solution and coordinates
@@ -201,54 +201,54 @@ plt.plot(grid,exact_sol2(grid),label='Exact')
 plt.legend()
 plt.title('Problem 2')
 plt.show()
-
+'''
 ##############################################################################
 # Part 3
-
-interval = (-2,4)
-grid = np.arange(interval[0],interval[1]+h,h)
-## boundary values y(-1) = y0 = a and y(1)=y1 = b
-y0 = 2
-y1 = 5
-collocationPnts = getGaussLobatto(N,interval=interval)
-## Rescale so the points are in [-1,1]
-alpha1 = .5*abs(max(collocationPnts) - min(collocationPnts))
-alpha2 = .5*abs(max(collocationPnts) + min(collocationPnts))
-#transform the coordinates 
-collocationPnts = collocationPnts/alpha1  - alpha2/alpha1
-
-D_1 = getDerMatrix(collocationPnts)
-D_2 = np.matmul(D_1,D_1)
-
-I = np.identity(N+1)
-# Now that we have the derivative matrix, we just need to construct the matrix 
-# for the ODE
-
-L = D_1/alpha1 + D_2/alpha1**2 -2*I
-
-# construct F
-F = np.full(len(L),-2) - y0*L[:,0] - y1*L[:,-1]
-
-# enforce BCs by removing first and last rows and columns. This is the boundary
-# bordering technique.
-L = np.delete(L,0,0)
-L = np.delete(L,-1,-1)
-L = np.delete(L,0,-1)
-L = np.delete(L,-1,0)
-
-
-
-sol = np.linalg.solve(L,F[1:N])
-# rescale the solution and coordinates
-collocationPnts = collocationPnts*alpha1 + alpha2
-sol = np.concatenate([[y0],sol,[y1]])
-
-error = np.abs(sol - exact_sol3(collocationPnts))
-print('Problem 3 Max Error:', max(error))
-
-
-plt.plot(collocationPnts,sol,label='Numerical N='+str(N))
-plt.plot(grid,exact_sol3(grid),label='Exact')
-plt.legend()
-plt.title('Problem 3')
-plt.show()
+for N in np.arange(20,2000,20):
+    interval = (-2,4)
+    grid = np.arange(interval[0],interval[1]+h,h)
+    ## boundary values y(-1) = y0 = a and y(1)=y1 = b
+    y0 = 2
+    y1 = 5
+    collocationPnts = getGaussLobatto(N,interval=interval)
+    ## Rescale so the points are in [-1,1]
+    alpha1 = .5*abs(max(collocationPnts) - min(collocationPnts))
+    alpha2 = .5*abs(max(collocationPnts) + min(collocationPnts))
+    #transform the coordinates 
+    collocationPnts = collocationPnts/alpha1  - alpha2/alpha1
+    
+    D_1 = getDerMatrix(collocationPnts)
+    D_2 = np.matmul(D_1,D_1)
+    
+    I = np.identity(N+1)
+    # Now that we have the derivative matrix, we just need to construct the matrix 
+    # for the ODE
+    
+    L = D_1/alpha1 + D_2/alpha1**2 -2*I
+    
+    # construct F
+    F = np.full(len(L),-2) - y0*L[:,0] - y1*L[:,-1]
+    
+    # enforce BCs by removing first and last rows and columns. This is the boundary
+    # bordering technique.
+    L = np.delete(L,0,0)
+    L = np.delete(L,-1,-1)
+    L = np.delete(L,0,-1)
+    L = np.delete(L,-1,0)
+    
+    
+    
+    sol = np.linalg.solve(L,F[1:N])
+    # rescale the solution and coordinates
+    collocationPnts = collocationPnts*alpha1 + alpha2
+    sol = np.concatenate([[y0],sol,[y1]])
+    
+    error = np.abs(sol - exact_sol3(collocationPnts))
+    print('Problem 3 Max Error:', max(error))
+    
+    
+    plt.plot(collocationPnts,sol,label='Numerical N='+str(N))
+    plt.plot(grid,exact_sol3(grid),label='Exact')
+    plt.legend()
+    plt.title('Problem 3')
+    plt.show()

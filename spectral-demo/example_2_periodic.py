@@ -62,48 +62,47 @@ def getDerMatrix(CPnts):
 
 
 
-N = 501 # number of basis functions. for odd number, this is includes 0 and the end boundary 
+N = 201 # number of basis functions. for odd number, this is includes 0 and the end boundary 
 ##############################################################################
 ### Part 1
 
-
+interval = (-10,10)
+a = min(interval)
+b = max(interval)
+alpha1 = (b - a)/(2.0*np.pi)
+alpha2 = a 
+print(alpha1)
+print(alpha2)
 CPnts = getCollocation(N)
-D_1 = getDerMatrix(CPnts)
-
-f = np.sin(2*CPnts)
-plt.plot(CPnts,f)
-plt.show()
-
-dfdx = np.matmul(D_1,f)
-
-plt.plot(CPnts,dfdx)
-plt.plot(CPnts,f)
-plt.show()
-
-'''
+CPnts_mapped = CPnts*alpha1 + a
+print(CPnts_mapped)
+D_1 = getDerMatrix(CPnts)#*alpha1
+print(D_1)
 
 I = np.identity(len(D_1),dtype='complex')
-L = D_1
-eigs,evects = np.linalg.eig(L)
-abs_eigs = np.abs(eigs)
+L = np.matmul(D_1,D_1)
 
-idx = abs_eigs.argsort()   
+L = np.delete(L,0,0)
+L = np.delete(L,-1,-1)
+L = np.delete(L,0,-1)
+L = np.delete(L,-1,0)
+
+eigs,evects = np.linalg.eig(L)
+
+idx = eigs.argsort()[::-1]   
 eigs= eigs[idx]
 #print(eigs)
 evects = evects[:,idx]
-F = np.zeros(len(D_1))
 
-#sol = np.linalg.solve(L,F)
 
-#plt.plot(CPnts,sol)
-#plt.show()
-#print(evects[:,2][0])
-#print(evects[:,2][-1])
-plt.plot(CPnts,np.real(evects[:,2])/np.abs(evects[:,2]))
-plt.plot(CPnts,np.imag(evects[:,2])/np.abs(evects[:,2]))
-plt.plot(CPnts+2*np.pi,np.real(evects[:,2])/np.abs(evects[:,2]))
-plt.plot(CPnts+2*np.pi,np.imag(evects[:,2])/np.abs(evects[:,2]))
-#plt.plot(CPnts,np.real(evects[:,3])/np.abs(evects[:,3]))
-#plt.plot(CPnts,np.imag(evects[:,3])/np.abs(evects[:,3]))
+plt.plot(CPnts_mapped[1:N],np.real(evects[:,0])/np.linalg.norm(evects[:,0]))
+#plt.plot(CPnts_mapped[1:N],np.imag(evects[:,0])/np.linalg.norm(evects[:,0]))
+plt.plot(CPnts_mapped[1:N],np.real(evects[:,1])/np.linalg.norm(evects[:,1]))
+#plt.plot(CPnts_mapped[1:N],np.imag(evects[:,1])/np.linalg.norm(evects[:,1]))
+plt.plot(CPnts_mapped[1:N],np.real(evects[:,0])/np.linalg.norm(evects[:,0]))
+#plt.plot(CPnts_mapped[1:N],np.imag(evects[:,0])/np.linalg.norm(evects[:,0]))
+plt.plot(CPnts_mapped[1:N],np.real(evects[:,2])/np.linalg.norm(evects[:,2]))
+#plt.plot(CPnts_mapped[1:N],np.imag(evects[:,2])/np.linalg.norm(evects[:,2]))
+plt.plot(CPnts_mapped[1:N],np.real(evects[:,3])/np.linalg.norm(evects[:,3]))
+#plt.plot(CPnts_mapped[1:N],np.imag(evects[:,3])/np.linalg.norm(evects[:,3]))
 plt.show()
-'''
