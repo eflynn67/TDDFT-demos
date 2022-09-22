@@ -10,7 +10,7 @@ N = 200 # number of collocation points.
 lb = -10 # left boundary
 rb = 10 # right boundary
 delta_t = 10**(-4) # time step length
-nt_steps = 1000000 #number of time steps
+nt_steps = 100000 #number of time steps
 
 
 
