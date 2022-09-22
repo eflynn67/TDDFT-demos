@@ -2,7 +2,7 @@ import scipy as sci
 import numpy as np
 import potentials
 import sys
-#from init import *
+from init import *
 sys.path.insert(0, '../../src/methods')
 import spec
 
@@ -104,7 +104,7 @@ class spec_H_func:
         self.CPnts = CPnts
         self.D_1 = D_1
         self.D_2 = np.matmul(D_1,D_1)
-    def HO(self,alpha,mass):
+    def HO(self,psi,psiStar,mass,alpha,q,BC=True):
         '''
         Uses 2nd order finite difference scheme to construct a discretized differential
         H operator for the GP potential.
@@ -131,38 +131,42 @@ class spec_H_func:
         H = -1.0*self.D_2/mass + np.diag(potentials.V_HO(self.CPnts,alpha))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
-        H = np.delete(H,0,0)
-        H = np.delete(H,-1,-1)
-        H = np.delete(H,0,-1)
-        H = np.delete(H,-1,0)
+        if BC == True:
+            H = np.delete(H,0,0)
+            H = np.delete(H,-1,-1)
+            H = np.delete(H,0,-1)
+            H = np.delete(H,-1,0)
         return H
-    def gaussian(self,psi,psiStar,mass,alpha,q):
+    def gaussian(self,psi,psiStar,mass,alpha,q,BC=True):
         H = -1.0*self.D_2/mass + np.diag(potentials.V_gaussian(self.CPnts))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
-        H = np.delete(H,0,0)
-        H = np.delete(H,-1,-1)
-        H = np.delete(H,0,-1)
-        H = np.delete(H,-1,0)
+        if BC == True:    
+            H = np.delete(H,0,0)
+            H = np.delete(H,-1,-1)
+            H = np.delete(H,0,-1)
+            H = np.delete(H,-1,0)
         return H
-    def GP_HO(self,psi,psiStar,mass,alpha,q):
+    def GP_HO(self,psi,psiStar,mass,alpha,q,BC=True):
         H = -1.0*self.D_2/mass + np.diag(potentials.V_HO(self.CPnts,alpha)) \
             + np.diag(potentials.V_rho(psi,psiStar,q))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
-        H = np.delete(H,0,0)
-        H = np.delete(H,-1,-1)
-        H = np.delete(H,0,-1)
-        H = np.delete(H,-1,0)
+        if BC == True:
+            H = np.delete(H,0,0)
+            H = np.delete(H,-1,-1)
+            H = np.delete(H,0,-1)
+            H = np.delete(H,-1,0)
         return H
-    def GP_gaussian(self,psi,psiStar,mass,alpha,q):
+    def GP_gaussian(self,psi,psiStar,mass,alpha,q,BC=True):
         H = -1.0*self.D_2/mass + np.diag(potentials.V_gaussian(self.CPnts)) \
             + np.diag(potentials.V_rho(psi,psiStar,q))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
-        H = np.delete(H,0,0)
-        H = np.delete(H,-1,-1)
-        H = np.delete(H,0,-1)
-        H = np.delete(H,-1,0)
+        if BC == True:
+            H = np.delete(H,0,0)
+            H = np.delete(H,-1,-1)
+            H = np.delete(H,0,-1)
+            H = np.delete(H,-1,0)
         return H
 
