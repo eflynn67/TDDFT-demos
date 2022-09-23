@@ -12,9 +12,14 @@ class GaussLobatto:
             max number of basis elements
         '''
         GSPnts = np.zeros(N+1)
+        w = np.zeros(N+1)
         for l in range(N+1):
             GSPnts[l] = np.cos(l*np.pi/N)
-        return GSPnts
+            if (l == 0) or (l == N):
+                w[l] = np.pi/(2.0*N)
+            else:
+                w[l] = np.pi/N
+        return GSPnts,w
 
     def fourier(self,N):
         '''
@@ -31,7 +36,11 @@ class GaussLobatto:
         for j in range(N+1):
             CPnts[j] = 2.0*j*np.pi/N
         return CPnts
-
+    def getDx(self,Pnts):
+        delta_x = np.zeros(len(Pnts) -1 )
+        for i in range(len(Pnts) -1 ):
+            delta_x[i] = abs(Pnts[i-1] - Pnts[i]) # chebyshev GB points are backwards
+        return delta_x
 class DerMatrix:
     '''
     The class contains the derivative matrices for Chebyshev and Fourier

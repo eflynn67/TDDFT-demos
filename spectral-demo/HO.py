@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import integrate
 import matplotlib.pyplot as plt
 from scipy import special
 import math
@@ -101,9 +102,14 @@ def getGaussLobatto(N):
     max number of basis elements
     '''
     GSPnts = np.zeros(N+1)
+    w = np.zeros(N+1)
     for l in range(N+1):
         GSPnts[l] =  np.cos(l*np.pi/N)
-    return GSPnts
+        if (l == 0) or (l == N):
+            w[l] = np.pi/(2.0*N)
+        else:
+            w[l] = np.pi/N
+    return GSPnts, w
 
 def c_coeff(l,N):
     if l == 0 or l == N:
@@ -183,7 +189,7 @@ def getDerMatrix_fourier(CPnts):
             if i != j:
                 S[i][j] = .5*(-1)**(i+j) * 1.0/np.tan((i-j)*np.pi/N)
     return S
-def prop_cheb(psi,H,dt):
+def prop_cheb(psi,H,dt,weights):
 
     dpsi = np.zeros(psi.shape,dtype='complex')
     dpsi_buffer = np.zeros((prop_order,len(psi)),dtype='complex')
@@ -201,11 +207,11 @@ def prop_cheb(psi,H,dt):
             dpsi_buffer[k] = 2.0*np.matmul(H_normalized,dpsi_buffer[k-1]) - dpsi_buffer[k-2]
             dpsi += (2.0*(- 1.0j)**k) * special.jv(k,tau)*dpsi_buffer[k]
 
-    norm = 1.0/np.linalg.norm(dpsi)
+    norm = 1.0/normalize(np.abs(dpsi),weights)
     dpsi = dpsi*norm
     return dpsi
 
-def prop(psi,H,dt):
+def prop(psi,H,dt,weights):
     dpsi = np.zeros(psi.shape,dtype='complex')
     dpsi_buffer = np.zeros((prop_order,len(psi)),dtype='complex')
     H_norm = np.linalg.norm(H,ord=1)
@@ -221,21 +227,27 @@ def prop(psi,H,dt):
         else:
             dpsi_buffer[k] = np.matmul(H_normalized,dpsi_buffer[k-1]) - dpsi_buffer[k-2]
             dpsi += ((- 1.0j*tau)**k)*dpsi_buffer[k]/math.factorial(k)
-    norm = 1.0/np.linalg.norm(dpsi)
+    norm = 1.0/normalize(np.abs(dpsi),weights)
     dpsi = dpsi*norm
     return dpsi
+def normalize(funcArr,weights):
+    norm = 0.0
+    for i in range(len(weights)-1):
+        norm += weights[i]*funcArr[i]
+    norm = np.sqrt(norm)
+    return norm
+
 N = 200 # number of basis functions .
-
-
+gamma = 1.0
 interval = (-10,10)
-Cpnts = getGaussLobatto(N)
-
+Cpnts, weights= getGaussLobatto(N)
+grid = np.linspace(interval[0],interval[1],200)
 #Cpnts = getCollocation_fourier(N)
 #print(CPnts)
 ## define affine transformation parameters
 a = min(interval)
 b = max(interval)
-Cpnts_shift,dgdy = arcTransform(Cpnts, 1 ) # for chebyshev
+Cpnts_shift,dgdy = arcTransform(Cpnts, gamma ) # for chebyshev
 #Cpnts_shift = cotTransform(Cpnts,1.0) # for fourier
 #Cpnts_shift = Cpnts
 
@@ -282,15 +294,39 @@ evals= evals[idx]
 evects = evects[:,idx]
 
 exact_GS = getExactLambda(n,1,.5)
-exact_evect = exact_psi(Cpnts_mapped[1:N])/np.linalg.norm(exact_psi(Cpnts_mapped[1:N]))
-psi_0 = evects[:,n]
-norm = np.linalg.norm(psi_0)
-psi_0 = psi_0/norm
+exact_evect = exact_psi(Cpnts_mapped)
+exact_evect_uniform = exact_psi(grid)
 
+psi_0 = evects[:,n]
+psi_0 = np.concatenate([[0],psi_0,[0]])
+delta_x = np.zeros(len(Cpnts) - 1)
+delta_x2 = np.zeros(len(grid)-1)
+for i in range(len(Cpnts) - 1):
+    delta_x[i] = Cpnts_shift[i-1] - Cpnts_shift[i]
+for i in range(len(grid) - 1):
+    delta_x2[i] = grid[i+1] - grid[i]
+norm1 = 0
+norm2 = 0
+norm3 = 0
+int_weights = delta_x*alpha1
+for i in range(len(Cpnts) -1):
+    norm1 += (int_weights[i])*psi_0[i]**2
+    norm2 += (int_weights[i])*exact_evect[i]**2
+
+for i in range(len(grid) -1):
+    norm3 += (delta_x2[i])*exact_evect_uniform[i]**2
+norm1 = np.sqrt(norm1)
+norm2 = np.sqrt(norm2)
+norm3 = np.sqrt(norm3)
+print(norm1)
+print(norm2)
+print(norm3)
 print('Eigenvalue Error: ', np.abs(evals[n]-exact_GS))
-print('EigenFunction Error ', np.linalg.norm(abs(psi_0)-abs(exact_evect)))
-plt.plot(Cpnts_mapped[1:N],abs(psi_0),label='Numerical N='+str(N))
-plt.plot(Cpnts_mapped[1:N],exact_evect,label='exact')
+print('EigenFunction Error ', np.linalg.norm(abs(psi_0/norm1)-abs(exact_evect/norm2)))
+#plt.plot(Cpnts_mapped,psi_0**2,label='Numerical N='+str(N))
+plt.plot(Cpnts_mapped,abs(psi_0)/norm1,label='Numerical N='+str(N))
+plt.plot(Cpnts_mapped,exact_evect/norm2,label='exact N='+str(N))
+plt.plot(grid,exact_evect_uniform/norm3,label='uniform')
 #plt.plot(Cpnts_mapped[1:N],psi_0-exact_evect,label='exact')
 plt.legend()
 plt.show()
@@ -307,14 +343,19 @@ psi_series = np.zeros((nt_steps+2,len(Cpnts)-2),dtype=complex)
 psi_series[0] = evects[:,0]/np.linalg.norm(evects[:,0]).copy()
 bndyErr=[]
 for i in range(nt_steps+1):
-    psi_series[i+1] = prop_cheb(psi_series[i],L,dt=dt)
+    psi_series[i+1] = prop(psi_series[i],L,dt=dt,weights =int_weights)
     err = np.abs(psi_series[i+1][0]-psi_series[i][0]) \
     + np.abs(psi_series[i+1][-1]-psi_series[i][-1])
     bndyErr.append(err)
-
+    if i % 100 == 0:
+        plt.plot(Cpnts_mapped[1:N],np.real(psi_series[i+1]))
+        plt.plot(Cpnts_mapped[1:N],np.imag(psi_series[i+1]))
+        plt.title(f't = {round(i*dt,3)}')
+        plt.show()
 end_time = time.time()
 
 print('Time: ',end_time - start_time)
+'''
 m,b = np.polyfit(np.arange(nt_steps+1), np.log(bndyErr), 1)
 print('b',b)
 print('m',m)
@@ -327,3 +368,4 @@ plt.show()
 plt.plot(Cpnts_mapped[1:N],np.real(psi_series[-1]),label='real')
 plt.plot(Cpnts_mapped[1:N],np.imag(psi_series[-1]),label='real')
 plt.show()
+'''
