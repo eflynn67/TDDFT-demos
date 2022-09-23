@@ -77,7 +77,7 @@ def MatrixSolve_SC_hermitian(H_func,psiArr,psiStarArr,int_weights):
                 #print(sigmaSeries[l])
         else: pass
         '''
-        #print(f'GS Energy {l}: {evals[:2]}')
+        print(f'GS Energy {l}: {evals[:2]}')
         norm = wf.normalize(psiSeries[-1]**2,int_weights)
 
     return evals[0],psiSeries[-1]/norm

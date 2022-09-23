@@ -126,7 +126,7 @@ E_gs, psi = solver.MatrixSolve_SC_hermitian(H_func,psi,psiStar,int_weights)
 print(E_gs)
 plt.plot(CPnts_mapped,abs(psi))
 plt.show()
-'''
+
 ################################################################################
 ### Time Propagation
 ################################################################################
@@ -137,12 +137,12 @@ psi_series_backward[0] = psi[:].copy()
 H =  H_func(psi_series_forward[0],psi_series_forward[0],mass,alpha,q,BC=False)
 
 for i in range(nt_steps):
-    psi_series_forward[i+1] = solver.prop(psi_series_forward[i],H,dt=0.5*delta_t,prop_order=prop_order,weights=int_weights)
+    psi_series_forward[i+1] = solver.prop_cheb(psi_series_forward[i],H,dt=0.5*delta_t,prop_order=prop_order,weights=int_weights)
     H = H_func(psi_series_forward[i+1],psi_series_forward[i+1],mass,alpha,q,BC=False)
 
-    psi_series_forward[i+1] = solver.prop(psi_series_forward[i],H,dt=delta_t,prop_order=prop_order,weights=int_weights)
+    psi_series_forward[i+1] = solver.prop_cheb(psi_series_forward[i],H,dt=delta_t,prop_order=prop_order,weights=int_weights)
     #psi_series_forward[i+1] = psi_series_forward[i+1]/wf.normalize(psi_series_forward[i+1])
-    if i % 200 == 0:
+    if i % 500 == 0:
         plt.plot(CPnts_mapped,np.real(psi_series_forward[i+1]),label='real')
         plt.plot(CPnts_mapped,np.imag(psi_series_forward[i+1]),label='imag')
         plt.plot(CPnts_mapped,np.abs(psi_series_forward[i+1]),label='rho')
@@ -156,4 +156,4 @@ for i in range(nt_steps):
 #plt.plot(CPnts_mapped,np.abs(psi_series_forward[0]))
 #plt.plot(CPnts_mapped,np.abs(psi_series_forward[-1]))
 plt.show()
-'''
+
