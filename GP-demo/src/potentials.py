@@ -1,5 +1,5 @@
 from init import *
-def V_HO(x,alpha):
+def V_HO(x,alpha,shift=0):
     '''
     1-d harmonic Oscillator potential
 
@@ -16,7 +16,7 @@ def V_HO(x,alpha):
         value of potential evaluated at x.
 
     '''
-    return alpha*x**2
+    return alpha*(x-shift)**2
 
 def V_rho(psi,psiStar,q):
     '''
@@ -61,7 +61,7 @@ def V_quartic(x,alpha):
     '''
     return alpha*(x**2 -1)**2
 
-def V_gaussian(x):
+def V_gaussian(x,V_1=V_1,V_2=V_2,shift=0):
     if isinstance(x, np.ndarray) == False:
         x = np.array(x)
     if len(x.shape) >=1:
@@ -71,6 +71,6 @@ def V_gaussian(x):
     V_const = [V_1,V_2]
     gamma_const = [gamma_1,gamma_2]
     for i in range(0,2):
-        V += (V_const[i]/(np.sqrt(np.pi)*gamma_const[i]))*np.exp(-(x/gamma_const[i])**2)
+        V += (V_const[i]/(np.sqrt(np.pi)*gamma_const[i]))*np.exp(-((x-shift)/gamma_const[i])**2)
     return V
     

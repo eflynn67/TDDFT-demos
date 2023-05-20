@@ -5,6 +5,8 @@ import math
 from inputs import *
 from init import *
 import matrix
+from scipy import interpolate
+
 
 def MatrixSolve_SC(H_func,psiArr,psiStarArr):
     H = H_func(psiArr,psiStarArr,mass,alpha,q)
@@ -29,8 +31,27 @@ def MatrixSolve_SC(H_func,psiArr,psiStarArr):
 def prop(psi,H,dt):
     #action of propagator on psi
     dpsi = np.zeros(psi.shape,dtype='complex')
-    for k in range(prop_order):
-        dpsi += ((-1.0j *dt)**k / math.factorial(k)) * np.matmul(np.linalg.matrix_power(H, k),psi)
+    dpsi = psi.copy()
+    tmppsi=psi.copy()
+    for k in range(1,prop_order):
+        fmd = - 1.0j*dt/k
+        tmppsi=fmd*np.matmul(H,tmppsi)
+        dpsi += tmppsi
+        #dpsi += ((-1.0j *dt)**k / math.factorial(k)) * np.matmul(np.linalg.matrix_power(H, k),psi)
+    norm = 1.0/np.linalg.norm(dpsi)
+    dpsi = dpsi*norm
+    return dpsi
+
+def splineprop(psi,H,dt, splinepsi):
+    #action of propagator on psi
+    dpsi = np.zeros(psi.shape,dtype='complex')
+    dpsi = psi.copy()
+    tmppsi=psi.copy()
+    for k in range(1,prop_order):
+        fmd = - 1.0j*dt/k
+        tmppsi=fmd*(-interpolate.splev(grid, splinepsi, der=2)/(2*mass) + np.matmul(H,tmppsi))
+        dpsi += tmppsi
+        #dpsi += ((-1.0j *dt)**k / math.factorial(k)) * np.matmul(np.linalg.matrix_power(H, k),psi)
     norm = 1.0/np.linalg.norm(dpsi)
     dpsi = dpsi*norm
     return dpsi

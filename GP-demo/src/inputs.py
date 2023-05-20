@@ -3,21 +3,22 @@
 ## run main.py in the src file.
 coulomb = False # not used anywhere lol.
 niter = 10 # number of self consistent iterations
-prop_order = 4 # expansion order of the propagator e^(-i \Delta t h(t)).
+prop_order = 8 # expansion order of the propagator e^(-i \Delta t h(t)).
 
 ## Domain properties
-lb = -10 # left boundary
-rb = 10 # right boundary
+lb = -20 # left boundary
+rb = 20# right boundary
 step_size = .2 #spatial grid spacing
-delta_t = .01 # time step length
-nt_steps = 500 #number of time steps 
+delta_t = .001 # time step length
+nt_steps = 5000 #number of time steps 
 
+gridextension = 5
 
 
 ## Interaction parameters
 mass = 1.0 
-alpha = 1.0 # interaction strength for quartic and HO potentials (if being used)
-q = 1.0 # interaction strength for |psi|^2 term in GP Hamiltonian
+alpha = 0*1e-3 # interaction strength for quartic and HO potentials (if being used)
+q = -0.0 # interaction strength for |psi|^2 term in GP Hamiltonian
 
 ## Interaction parameters for gaussian potential taken from Barrier penetration
 ## paper Levit, Negele, and Patiel (1980) (if being used.)
