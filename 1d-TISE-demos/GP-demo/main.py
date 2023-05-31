@@ -1,19 +1,15 @@
 import numpy as np
-import scipy as sci
-from scipy import optimize
 from scipy import special
 import matplotlib.pyplot as plt
-import sys
-from init import *
-from inputs import *
 import matrix
-import solver
-import wf
-sys.path.insert(0, '../../src/methods')
+#import wf
+sys.path.insert(0, '../solvers')
 import spec
+import solvers
 def getExactLambda(n,mass,alpha):
     '''
     Exact eigenvalues of the HO equation. -f''(x) + k x^2 f(x) = 2 m E f(x)
+    Used for checking the solution method
     Lambda = 2 m E
     E = (n + .5) \omega
     \alpha = m^2 \omega^2
@@ -34,7 +30,7 @@ def getExactLambda(n,mass,alpha):
 def getPsi_x(n,k):
     '''
     Definition of exact HO wavefunction taken from Zettili page 240.
-
+    Used for checking the solution method
     Parameters
     ----------
     n : TYPE
@@ -52,17 +48,51 @@ def getPsi_x(n,k):
         return(result)
     return wf
 
+###############################################################################
+## Self Consistent Solve parameters
+niter = 50 # number of self consistent iterations
+sigma = .5 #sigma = [0,1]. 0.0 means nothing happens
 
-interval = (-10,10)
-## Define GaussLobatto points in the interval [-1,1]
-CPnts,GL_weights = spec.GaussLobatto().chebyshev(N)
+###############################################################################
+## Propagation parameters
+prop_order = 6 #Expansion order of the propagator e^(-i \Delta t h(t)).
+delta_t = 10**(-4) # time step length rule of thumb is delta_t < 1/N^(1.5)
+nt_steps = 10 #number of time steps
+
+###############################################################################
+## Domain properties
+#step_size = .2 ## for finite difference schemes
+N = 20 # number of collocation points.
+lb = -5 # left boundary
+rb = 5 # right boundary
+
+###############################################################################
+## Interaction parameters
+mass = 1.0
+kappa = 1.0 # interaction strength for HO potential 
+q = -0.5# interaction strength for |psi|^2 term in GP Hamiltonian
+
+###############################################################################
+e2 = 1.4399784 # e^2 charge in MeV fm
+hb2m0 = 20.735530
+kappa = 1.0
+mass = 1.0
+params = {'mass':mass,'nt_steps':nt_steps,'niter':niter,'hb2m0':hb2m0,'kappa':kappa,'q':q}
+
+
+###############################################################################
+currentInterval = (-1,1) # interval the derivatives are defined on. (we start here)
+targetInterval = (lb,rb) ## interval on real space to solve on
+## Define Chebyshev GaussLobatto points in the interval [-1,1]
+GL_func = spec.GaussLobatto()
+CPnts,weights = GL_func.chebyshev(N)
 
 # To reduce the stability problems with the GL points, we map these points using
 # the arcsin transform
-beta = 1.0 # the stretching parameter for the arcsin coordinate transform
+beta = 0.5 # the stretching parameter for the arcsin coordinate transform
 
-transform = spec.coord_transforms(interval=interval)
-CPnts_shift,dgdy_arc = transform.arcTransform(CPnts,beta)
+coord_trans = spec.coord_transforms(currentInterval,targetInterval)
+CPnts_shift,dgdy_arc = coord_trans.arcTransform(CPnts,beta)
 
 
 # Define derivative matrix at the new Cpnts

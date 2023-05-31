@@ -16,7 +16,7 @@ nt_steps = 1000000 #number of time steps
 ###############################################################################
 ## Domain properties
 #step_size = .2 ## for finite difference schemes
-N = 400 # number of collocation points.
+N = 20 # number of collocation points.
 lb = -20 # left boundary
 rb = 20 # right boundary
 

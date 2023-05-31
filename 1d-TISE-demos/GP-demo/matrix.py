@@ -2,12 +2,16 @@ import scipy as sci
 import numpy as np
 import potentials
 import sys
-from init import *
-sys.path.insert(0, '../../src/methods')
+#from init import *
+sys.path.insert(0, '../solvers')
 import spec
 
 class FD_H_func:
-    def HO(psi,psiStar,mass,alpha,q):
+    def __init__(self,grid,params):
+        self.grid = grid
+        self.params = params
+        
+    def HO(self,psi,psiStar,params):
         '''
         Uses 2nd order finite difference scheme to construct a discretized differential
         H operator for the GP potential.
@@ -31,13 +35,14 @@ class FD_H_func:
             DESCRIPTION.
 
         '''
-        dim = len(grid)
+        dim = len(self.grid)
         off_diag = np.zeros(dim)
         off_diag[1] = 1
-        H = -1*(-2*np.identity(dim) + sci.linalg.toeplitz(off_diag))/(step_size**2) + np.diag(potentials.V_HO(grid,alpha)) \
-            +np.diag(potentials.V_rho(psi,psiStar,q))
+        H = -1*(-2*np.identity(dim) + sci.linalg.toeplitz(off_diag))/(params['step_size']**2) + \
+        np.diag(potentials.V_HO(self.grid,self.params)) \
+            +np.diag(potentials.V_rho(psi,psiStar,self.params))
         return H
-    def quartic(psi,psiStar,mass,alpha,q):
+    def quartic(self,psi,psiStar,params):
         '''
         Uses 2nd order finite difference scheme to construct a discretized differential
         H operator for the GP with quartic potential.
@@ -61,14 +66,15 @@ class FD_H_func:
             DESCRIPTION.
 
         '''
-        dim = len(grid)
+        dim = len(self.grid)
         off_diag = np.zeros(dim)
         off_diag[1] = 1
-        H = -1*(-2*np.identity(dim) + sci.linalg.toeplitz(off_diag))/(mass*step_size**2) + np.diag(potentials.V_quartic(grid,alpha)) \
-            + np.diag(potentials.V_rho(psi,psiStar,q))
+        H = -1*(-2*np.identity(dim) + sci.linalg.toeplitz(off_diag))/(self.params['mass']*self.params['step_size']**2) + \
+        np.diag(potentials.V_quartic(self.grid,self.params)) \
+            + np.diag(potentials.V_rho(psi,psiStar,self.params))
         H = np.array(H,dtype='complex')
         return H
-    def gaussian(psi,psiStar,mass,alpha,q):
+    def gaussian(self,psi,psiStar,params):
         '''
         Uses 2nd order finite difference scheme to construct a discretized differential
         H operator for the GP potential with gaussian potential.
@@ -92,22 +98,24 @@ class FD_H_func:
             DESCRIPTION.
 
         '''
-        dim = len(grid)
+        dim = len(self.grid)
         off_diag = np.zeros(dim)
         off_diag[1] = 1
-        H = -1*(-2*np.identity(dim) + sci.linalg.toeplitz(off_diag))/(mass*step_size**2) + np.diag(potentials.V_gaussian(grid)) \
-            + np.diag(potentials.V_rho(psi,psiStar,q))
+        H = -1*(-2*np.identity(dim) + sci.linalg.toeplitz(off_diag))/(self.params['mass']*self.params['step_size']**2) +\
+        np.diag(potentials.V_gaussian(self.grid)) \
+            + np.diag(potentials.V_rho(psi,psiStar,self.params))
         return H
 class spec_H_func:
-    def __init__(self, N,CPnts,D_1):
+    def __init__(self, N,CPnts,D_1,params):
         self.N = N
         self.CPnts = CPnts
         self.D_1 = D_1
         self.D_2 = np.matmul(D_1,D_1)
+        self.params = params
     def HO(self,psi,psiStar,mass,alpha,q,BC=True):
         '''
-        Uses 2nd order finite difference scheme to construct a discretized differential
-        H operator for the GP potential.
+        Constructs a harmonic oscillator hamiltonian given a differentiation matrix
+        operator for the GP potential.
 
         Parameters
         ----------
@@ -128,7 +136,8 @@ class spec_H_func:
             DESCRIPTION.
 
         '''
-        H = -1.0*self.D_2/mass + np.diag(potentials.V_HO(self.CPnts,alpha))
+        H = self.params['hb2m0']*(-1.0*self.D_2/self.params['mass']) + \
+        np.diag(potentials.V_HO(self.CPnts,self.params['kappa']))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
         if BC == True:
@@ -137,8 +146,9 @@ class spec_H_func:
             H = np.delete(H,0,-1)
             H = np.delete(H,-1,0)
         return H
-    def gaussian(self,psi,psiStar,mass,alpha,q,BC=True):
-        H = -1.0*self.D_2/mass + np.diag(potentials.V_gaussian(self.CPnts))
+    def gaussian(self,psi,psiStar,params,BC=True):
+        H = self.params['hb2m0']*(-1.0*self.D_2/self.params['mass']) + \
+        np.diag(potentials.V_gaussian(self.CPnts,self.params))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
         if BC == True:    
@@ -147,9 +157,10 @@ class spec_H_func:
             H = np.delete(H,0,-1)
             H = np.delete(H,-1,0)
         return H
-    def GP_HO(self,psi,psiStar,mass,alpha,q,BC=True):
-        H = -1.0*self.D_2/mass + np.diag(potentials.V_HO(self.CPnts,alpha)) \
-            + np.diag(potentials.V_rho(psi,psiStar,q))
+    def GP_HO(self,psi,psiStar,params,BC=True):
+        H = params['hb2m0']*(-1.0*self.D_2/self.params['mass']) + \
+        np.diag(potentials.V_HO(self.CPnts,self.params)) \
+            + np.diag(potentials.V_rho(psi,psiStar,self.params))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
         if BC == True:
@@ -158,9 +169,10 @@ class spec_H_func:
             H = np.delete(H,0,-1)
             H = np.delete(H,-1,0)
         return H
-    def GP_gaussian(self,psi,psiStar,mass,alpha,q,BC=True):
-        H = -1.0*self.D_2/mass + np.diag(potentials.V_gaussian(self.CPnts)) \
-            + np.diag(potentials.V_rho(psi,psiStar,q))
+    def GP_gaussian(self,psi,psiStar,params,BC=True):
+        H =  params['hb2m0']*(-1.0*self.D_2/self.params['mass']) + \
+        np.diag(potentials.V_gaussian(self.CPnts,self.params)) \
+            + np.diag(potentials.V_rho(psi,psiStar,self.params))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
         if BC == True:
