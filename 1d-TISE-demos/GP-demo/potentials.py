@@ -63,7 +63,7 @@ def V_quartic(x,alpha,g):
     '''
     return alpha*x**2 + g*x**4
 
-def V_double_well(x,alpha,b):
+def V_double_well(x,g,b):
     '''
     1-d harmonic Oscillator potential
 
@@ -82,4 +82,4 @@ def V_double_well(x,alpha,b):
         value of potential evaluated at x.
 
     '''
-    return kappa*(x**2 -b)**2
+    return g*(x**2 -b)**2

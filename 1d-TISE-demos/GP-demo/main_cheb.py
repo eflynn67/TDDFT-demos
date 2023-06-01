@@ -56,7 +56,9 @@ def getPsi_x(n,alpha):
 
 ###############################################################################
 ## Self Consistent Solve parameters
-niter = 30 # number of self consistent iterations
+# Note as you turn up the coupling q on the non-linear term, you will probably
+# need more self consisten iterations
+niter = 50 # number of self consistent iterations
 
 ## WARNING: MIXING DOESN'T SEEM TO BE WORKING
 ## Sigma is the mixing parameter. sigma = 1.0 means full replacement. 
@@ -65,8 +67,8 @@ sigma = 1.0
 
 ###############################################################################
 ## Propagation parameters
-prop_order = 6 #Expansion order of the propagator e^(-i \Delta t h(t)).
-delta_t = 2*10**(-3) # time step length rule of thumb is delta_t < 1/N^(1.5)
+prop_order = 12 #Expansion order of the propagator e^(-i \Delta t h(t)).
+delta_t = 10**(-3) # time step length rule of thumb is delta_t < 1/N^(1.5)
 nt_steps = 10**(5) #number of time steps
 
 ###############################################################################
@@ -79,7 +81,7 @@ rb = 5 # right boundary
 ###############################################################################
 ## Interaction parameters
 mass = 1.0
-alpha = 2.0 # interaction strength for HO potential (alpha*x^2)
+alpha = 1.0 # interaction strength for HO potential (alpha*x^2)
 q = 1.0 # interaction strength for |psi|^2 term in GP Hamiltonian
 
 ###############################################################################
@@ -92,6 +94,7 @@ params = {'mass':mass,'nt_steps':nt_steps,'niter':niter,'hb2m0':hb2m0,'e2':e2,'a
 ###############################################################################
 currentInterval = (-1,1) # interval the derivatives are defined on. (we start here)
 targetInterval = (lb,rb) ## interval on real space to solve on
+
 ## Define Chebyshev GaussLobatto points in the interval [-1,1]
 GL_func = spec.GaussLobatto()
 CPnts,weights = GL_func.chebyshev(N)
@@ -195,22 +198,23 @@ for i in range(nt_steps):
     H =  H_func(psi_series_forward[i],psi_series_forward[i],BC=True)
     # compute predictor step using chebyshev expansion of the propagator
     psi_predict = solvers.prop_cheb(psi_series_forward[i],H,dt=0.5*delta_t,prop_order=prop_order,weights=int_weights)
-    
     #psi_predict = solvers.prop(psi_series_forward[i],H,dt=0.5*delta_t,prop_order=prop_order,weights=int_weights)
+    
     # recompute the Hamiltonian with the predictor WFs
     H = H_func(psi_predict,psi_predict,BC=True)
+    
     # Now compute the full time step.
     psi_series_forward[i+1] = solvers.prop_cheb(psi_series_forward[i],H,dt=delta_t,prop_order=prop_order,weights=int_weights)
     #psi_series_forward[i+1] = solvers.prop(psi_series_forward[i],H,dt=delta_t,prop_order=prop_order,weights=int_weights)
     
-    if i % 100 == 0:
+    if i % 500 == 0:
         plt.plot(CPnts_mapped,np.real(psi_series_forward[i+1]),label='real')
         plt.plot(CPnts_mapped,np.imag(psi_series_forward[i+1]),label='img')
         plt.plot(CPnts_mapped,np.abs(psi_series_forward[i+1]),label='rho')
         plt.plot(CPnts_mapped,V_HO_grid,label='HO Potential')
         plt.title(f't = {round(i*delta_t,4)}')
-        plt.ylim([0,1.5])
-        plt.xlim([-3,3])
+        plt.ylim([-1.5,1.5])
+        #plt.xlim([-3,3])
         plt.legend()
         plt.show()
     
