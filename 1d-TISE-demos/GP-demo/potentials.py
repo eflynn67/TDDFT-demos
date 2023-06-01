@@ -1,4 +1,4 @@
-from init import *
+import numpy as np
 def V_HO(x,alpha):
     '''
     1-d harmonic Oscillator potential
@@ -42,7 +42,7 @@ def V_rho(psi,psiStar,q):
     #print(type(q*psiStar*psi))
     return q*psiStar*psi
 
-def V_quartic(x,alpha):
+def V_quartic(x,alpha,g):
     '''
     1-d harmonic Oscillator potential
 
@@ -51,7 +51,9 @@ def V_quartic(x,alpha):
     x : float or nd array
         position.
     alpha : float
-        oscillator length parameter.
+        oscillator strength parameter.
+    g: float 
+        stength of anharmonic oscillator.
 
     Returns
     -------
@@ -59,17 +61,25 @@ def V_quartic(x,alpha):
         value of potential evaluated at x.
 
     '''
-    return alpha*(x**2 -1)**2
+    return alpha*x**2 + g*x**4
 
-def V_gaussian(x):
-    if isinstance(x, np.ndarray) == False:
-        x = np.array(x)
-    if len(x.shape) >=1:
-        V = np.zeros(nbox)
-    else:
-        V = 0
-    V_const = [V_1,V_2]
-    gamma_const = [gamma_1,gamma_2]
-    for i in range(0,2):
-        V += (V_const[i]/(np.sqrt(np.pi)*gamma_const[i]))*np.exp(-(x/gamma_const[i])**2)
-    return V
+def V_double_well(x,alpha,b):
+    '''
+    1-d harmonic Oscillator potential
+
+    Parameters
+    ----------
+    x : float or nd array
+        position.
+    alpha : float
+        oscillator strength parameter.
+    b: float 
+        adjusts where the zeros of the 
+
+    Returns
+    -------
+    float or ndarray
+        value of potential evaluated at x.
+
+    '''
+    return kappa*(x**2 -b)**2

@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import scipy as sci
 from scipy.integrate import solve_bvp
 from scipy import special
-
+import utilities
+import math
 '''
 Contains: all the solvers needed to solve 1d single particle self consistent 
 problems
@@ -21,59 +22,73 @@ Contents: -1d self consistent solver using pseudospectal method.
 '''
 ###############################################################################
 def MatrixSolve_SC_hermitian(H_func,psiArr,psiStarArr,int_weights,params):
-    niter = params['ninter']
+    '''
+    Self-consistent solve for the ground state of a non-linear system defined by H
+    Parameters
+    ----------
+    H_func : function type
+        DESCRIPTION.
+    psiArr : ndarry
+        Initial guess for ground state psi.
+    psiStarArr : ndarray
+        conjugate of psiArr.
+    int_weights : ndarray
+        integration weights defined on collocation points.
+    params : dictionary
+        interaction and system parms.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+    TYPE
+        DESCRIPTION.
+
+    '''
+    niter = params['niter']
     sigma = params['sigma']
+    #since the problem is assumed to be a simple 1d, we store the self consistent 
+    #iterations of the wavefunction
+
     seriesShape = np.concatenate([[niter],psiArr.shape])
-    psiSeries = np.zeros(seriesShape,dtype=complex)
-    psiStarSeries = np.zeros(seriesShape,dtype=complex)
-
-    #sigmaSeries = np.zeros(niter) #Array to contain the mixing parameter
-    #sigmaSeries[0] = sigma
-    #sigmaSeries[1] = sigma
-    #rSeries = np.zeros(seriesShape) # residual array
-
-    H = H_func(psiArr,psiStarArr,params)
-
-    evals,evects = sci.linalg.eig(H)
-    idx = evals.argsort()
-    evals = evals[idx]
-    evects = evects[:,idx]
-    evects = evects.T
-
-    psi = evects[0]
-    psi_norm = utilities.normalize(psi**2,int_weights)
-    #psi_norm = wf.normalize(psi**2,int_weights)
-    psi = psi/psi_norm
-    psi = np.concatenate([[0],psi,[0]])
-    psiStar = np.conjugate(psi)/psi_norm
-    psiSeries[0] = psi
-    psiStarSeries[0] = psiStar
-
+    psiSeries = np.zeros(seriesShape)
+    psiStarSeries = np.zeros(seriesShape)
+    evalSeries = np.zeros(niter)
+    '''
+    # Array to store the mixing parameter
+    sigmaSeries = np.zeros(niter) #Array to contain the mixing parameter
+    sigmaSeries[0] = sigma
+    rSeries = np.zeros(seriesShape) # residual array
+    
+    ## intialize the first iteration with psiArr and psiStar
+    psiSeries[0] = psiArr
+    psiStarSeries[0] = psiStarArr
+    '''
+    # main self-consistent loop
     for l in np.arange(1,niter):
-        H = H_func(psiSeries[l-1],psiStarSeries[l-1],params)
+        H = H_func(psiSeries[l-1],psiStarSeries[l-1],BC=True)
         evals,evects = sci.linalg.eig(H)
-        idx = evals.argsort()
-        evals = evals[idx]
+        idx = np.real(evals).argsort()
+        evals = np.real(evals[idx])
         evects = evects[:,idx]
         evects = evects.T
-
+        
         psi = evects[0]
-        psi = np.concatenate([[0],psi,[0]])
-        psi_norm = utilities.normalize(np.abs(psi),int_weights)
-        #psi_norm = wf.normalize(np.abs(psi),int_weights)
-        psi = psi/psi_norm
-        #psiSeries[l] = psi
+        psi = np.concatenate([[0],psi,[0]]) # put the zeros back in since we cut them off by BCs
+        psiStar = np.conjugate(psi)
+        
 
-        psiStar = np.conjugate(psi)/psi_norm
-        #psiStarSeries[l] = np.conjugate(psiStar)
+        psi = sigma*psi + (1.0-sigma)*psiSeries[l-1]
+        psiStar = sigma*psiStar + (1.0-sigma)*psiStarSeries[l-1]
+        
+        psi_norm = utilities.normalize(psi,int_weights)
 
-        psiSeries[l] = sigma*psi + (1.0-sigma)*psiSeries[l-1]
-        psiStarSeries[l] = sigma*psiStar + (1.0-sigma)*psiStarSeries[l-1]
-        norm = utilities.normalize(psiSeries[l],int_weights)
-        #norm = wf.normalize(psiSeries[l],int_weights)
-        psiSeries[l] = psiSeries[l]/norm
-        psiStarSeries[l] = psiStarSeries[l]/norm
-
+        psiSeries[l] = psi/psi_norm
+        psiStarSeries[l] = psiStar/psi_norm
+        
+        evalSeries[l] = evals[0]
+        
+        # self driving mixing doesn't work at the moment
         '''
         #mixing parameters give different results.
         #calculate residual
@@ -87,19 +102,17 @@ def MatrixSolve_SC_hermitian(H_func,psiArr,psiStarArr,int_weights,params):
                 sigmaSeries[l] = 0.0
             else:
                 #print('it did not vanish')
-
                 sigmaSeries[l] = -1.0*np.dot(rSeries[l-1],rSeries[l] -rSeries[l-1])/r_norm
-                print(np.dot(rSeries[l-1],rSeries[l] -rSeries[l-1]))
-                print(r_norm)
+                #print(np.dot(rSeries[l-1],rSeries[l] -rSeries[l-1]))
+                #print(r_norm)
                 #print(sigmaSeries[l])
         else: pass
         '''
-        print(f'GS Energy {l}: {evals[:2]}')
-        #norm = wf.normalize(psiSeries[-1]**2,int_weights)
-        norm = wf.normalize(psiSeries[-1]**2,int_weights)
-    return evals[0],psiSeries[-1]/norm
+        #print(f'GS Energy Iteration {l}: {evals[0]}')
+    return evalSeries,psiSeries
 
 def prop_cheb(psi,H,dt,prop_order,weights):
+    psi = psi[1:len(psi)-1]
     dpsi = np.zeros(psi.shape,dtype='complex')
     dpsi_buffer = np.zeros((prop_order,len(psi)),dtype='complex')
     H_norm = np.linalg.norm(H,ord=1)
@@ -113,14 +126,16 @@ def prop_cheb(psi,H,dt,prop_order,weights):
         elif k ==1 :
             dpsi += 2.0*(- 1.0j)**k * special.jv(k,tau)*dpsi_buffer[k]
         else:
-            dpsi_buffer[k] = 2.0*np.matmul(H_normalized,dpsi_buffer[k-1]) - dpsi_buffer[k-2]
+            dpsi_buffer[k] = 2.0*np.matmul(H_normalized,dpsi_buffer[k-1]) \
+                - dpsi_buffer[k-2]
             dpsi += (2.0*(- 1.0j)**k) * special.jv(k,tau)*dpsi_buffer[k]
-     norm = 1.0/utilities.normalize(np.abs(dpsi),weights)
-#    norm = 1.0/wf.normalize(np.abs(dpsi),weights)
-    dpsi = dpsi*norm
+    norm = utilities.normalize(dpsi,weights)
+    dpsi = dpsi/norm
+    dpsi = np.concatenate([[0],dpsi,[0]])
     return dpsi
 
 def prop(psi,H,dt,prop_order,weights):
+    psi = psi[1:len(psi)-1]
     dpsi = np.zeros(psi.shape,dtype='complex')
     dpsi_buffer = np.zeros((prop_order,len(psi)),dtype='complex')
     H_norm = np.linalg.norm(H,ord=1)
@@ -130,14 +145,15 @@ def prop(psi,H,dt,prop_order,weights):
     dpsi_buffer[1] = np.matmul(H_normalized,psi)
     for k in np.arange(0,prop_order):
         if k  == 0:
-            dpsi += ((- 1.0j)**k)*dpsi_buffer[k]
+            dpsi += dpsi_buffer[k]
         elif k ==1 :
             dpsi += ((- 1.0j*tau)**k)*dpsi_buffer[k]
         else:
-            dpsi_buffer[k] = np.matmul(H_normalized,dpsi_buffer[k-1]) - dpsi_buffer[k-2]
+            dpsi_buffer[k] = np.matmul(H_normalized,dpsi_buffer[k-1]) #- dpsi_buffer[k-2]
             dpsi += ((- 1.0j*tau)**k)*dpsi_buffer[k]/math.factorial(k)
-    norm = 1.0/wf.normalize(np.abs(dpsi),weights)
-    dpsi = dpsi*norm
+    norm = utilities.normalize(dpsi,weights)
+    dpsi = dpsi/norm
+    dpsi = np.concatenate([[0],dpsi,[0]])
     return dpsi
 
 

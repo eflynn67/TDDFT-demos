@@ -112,10 +112,10 @@ class spec_H_func:
         self.D_1 = D_1
         self.D_2 = np.matmul(D_1,D_1)
         self.params = params
-    def HO(self,psi,psiStar,mass,alpha,q,BC=True):
+    def HO(self,psi,psiStar,BC=True):
         '''
         Constructs a harmonic oscillator hamiltonian given a differentiation matrix
-        operator for the GP potential.
+        operator. Note: all the constants are assumed to be smashed into alpha.
 
         Parameters
         ----------
@@ -136,8 +136,8 @@ class spec_H_func:
             DESCRIPTION.
 
         '''
-        H = self.params['hb2m0']*(-1.0*self.D_2/self.params['mass']) + \
-        np.diag(potentials.V_HO(self.CPnts,self.params['kappa']))
+        H = -1.0*self.D_2 + \
+        np.diag(potentials.V_HO(self.CPnts,self.params['alpha']))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
         if BC == True:
@@ -146,21 +146,10 @@ class spec_H_func:
             H = np.delete(H,0,-1)
             H = np.delete(H,-1,0)
         return H
-    def gaussian(self,psi,psiStar,params,BC=True):
-        H = self.params['hb2m0']*(-1.0*self.D_2/self.params['mass']) + \
-        np.diag(potentials.V_gaussian(self.CPnts,self.params))
-        # enforce boundary conditions by setting end points to zero. This means
-        # we can remove two rows and two cols
-        if BC == True:    
-            H = np.delete(H,0,0)
-            H = np.delete(H,-1,-1)
-            H = np.delete(H,0,-1)
-            H = np.delete(H,-1,0)
-        return H
-    def GP_HO(self,psi,psiStar,params,BC=True):
-        H = params['hb2m0']*(-1.0*self.D_2/self.params['mass']) + \
-        np.diag(potentials.V_HO(self.CPnts,self.params)) \
-            + np.diag(potentials.V_rho(psi,psiStar,self.params))
+    def GP_HO(self,psi,psiStar,BC=True):
+        H = -1.0*self.D_2 + \
+        np.diag(potentials.V_HO(self.CPnts,self.params['alpha'])) \
+            + np.diag(potentials.V_rho(psi,psiStar,self.params['q']))
         # enforce boundary conditions by setting end points to zero. This means
         # we can remove two rows and two cols
         if BC == True:
@@ -169,16 +158,4 @@ class spec_H_func:
             H = np.delete(H,0,-1)
             H = np.delete(H,-1,0)
         return H
-    def GP_gaussian(self,psi,psiStar,params,BC=True):
-        H =  params['hb2m0']*(-1.0*self.D_2/self.params['mass']) + \
-        np.diag(potentials.V_gaussian(self.CPnts,self.params)) \
-            + np.diag(potentials.V_rho(psi,psiStar,self.params))
-        # enforce boundary conditions by setting end points to zero. This means
-        # we can remove two rows and two cols
-        if BC == True:
-            H = np.delete(H,0,0)
-            H = np.delete(H,-1,-1)
-            H = np.delete(H,0,-1)
-            H = np.delete(H,-1,0)
-        return H
-
+    
