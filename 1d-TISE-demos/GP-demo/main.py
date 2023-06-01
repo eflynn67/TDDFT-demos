@@ -66,8 +66,8 @@ sigma = 1.0
 ###############################################################################
 ## Propagation parameters
 prop_order = 6 #Expansion order of the propagator e^(-i \Delta t h(t)).
-delta_t = 10**(-3) # time step length rule of thumb is delta_t < 1/N^(1.5)
-nt_steps = 10000 #number of time steps
+delta_t = 2*10**(-3) # time step length rule of thumb is delta_t < 1/N^(1.5)
+nt_steps = 10**(5) #number of time steps
 
 ###############################################################################
 ## Domain properties
@@ -190,7 +190,7 @@ plt.show()
 psi_0 =  psiSeries[-1].copy()
 psi_series_forward = np.zeros((nt_steps+1,len(CPnts)),dtype=complex) # -2 for len since we remove boundary
 psi_series_forward[0] = psi_0
-
+bndyErr = []
 for i in range(nt_steps):
     H =  H_func(psi_series_forward[i],psi_series_forward[i],BC=True)
     # compute predictor step using chebyshev expansion of the propagator
@@ -202,6 +202,7 @@ for i in range(nt_steps):
     # Now compute the full time step.
     psi_series_forward[i+1] = solvers.prop_cheb(psi_series_forward[i],H,dt=delta_t,prop_order=prop_order,weights=int_weights)
     #psi_series_forward[i+1] = solvers.prop(psi_series_forward[i],H,dt=delta_t,prop_order=prop_order,weights=int_weights)
+    
     if i % 100 == 0:
         plt.plot(CPnts_mapped,np.real(psi_series_forward[i+1]),label='real')
         plt.plot(CPnts_mapped,np.imag(psi_series_forward[i+1]),label='img')
@@ -212,9 +213,4 @@ for i in range(nt_steps):
         plt.xlim([-3,3])
         plt.legend()
         plt.show()
-    #err = np.abs(psi_series[i+1][0]-psi_series[i][0]) \
-    #+ np.abs(psi_series[i+1][-1]-psi_series[i][-1])
-    #bndyErr.append(err)
-
-
-
+    
