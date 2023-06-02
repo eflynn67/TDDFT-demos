@@ -26,7 +26,7 @@ def getExactLambda(n,mass,alpha):
         oscillator width
     mass: float
         mass of particle in well
-        
+
     Returns
     -------
     float
@@ -61,7 +61,7 @@ def getPsi_x(n,alpha):
 niter = 50 # number of self consistent iterations
 
 ## WARNING: MIXING DOESN'T SEEM TO BE WORKING
-## Sigma is the mixing parameter. sigma = 1.0 means full replacement. 
+## Sigma is the mixing parameter. sigma = 1.0 means full replacement.
 ## The mixing currently does not seem to be working
 sigma = 1.0
 
@@ -150,18 +150,21 @@ print(f'Numerical Harmonic Oscillator E_GS: {np.real(E_GS_numerical)}')
 print('L2 Difference of HO ground state WF: ',np.linalg.norm(psi_HO_exact-np.abs(sol))) #abs is there since the numerical solver solves up to a sign
 print('Difference in HO ground state energy: ', np.abs(E_GS - E_GS_numerical))
 print(50*'=')
-plt.plot(CPnts_mapped,sol,label='Numerical Ground State',color='red')
+plt.plot(CPnts_mapped,np.abs(sol),label='Numerical Ground State',color='red')
 plt.plot(CPnts_mapped,psi_HO_exact,label='Exact Ground State')
 plt.plot(CPnts_mapped,V_HO_grid,label='HO Potential')
 plt.legend()
-plt.ylim([0,1.5])
-plt.xlim([-3,3])
+plt.ylim([0,1])
+plt.xlim([-4,4])
 plt.show()
 
 
 #################################################################################
 
 ### Now solve the nonlinear GP problem self-consistently
+### this solution is used to test stability of time propagation method.
+### The reason we do this is because rho should not change in time so
+### the time evolution should be static.
 H_constructor = matrix.spec_H_func(N, CPnts_mapped,D_1,params)
 H_func = H_constructor.GP_HO
 E_gsSeries, psiSeries = solvers.MatrixSolve_SC_hermitian(H_func,psi_HO_exact,psiStar_HO_exact,int_weights,params)
@@ -171,7 +174,7 @@ print(50*'=')
 print(f'Final E_GS: {E_gsSeries[-1]}')
 '''
 for i in range(len(psi))[::2]:
-    
+
     plt.plot(CPnts_mapped,psi_HO_exact,label='Exact HO GS')
     plt.plot(CPnts_mapped,np.abs(psi[i]),label='Numerical GP GS',color='red')
     plt.plot(CPnts_mapped,V_HO_grid,label='HO Potential')
@@ -192,29 +195,30 @@ plt.show()
 ## intialize the t = 0 wavefunction
 psi_0 =  psiSeries[-1].copy()
 psi_series_forward = np.zeros((nt_steps+1,len(CPnts)),dtype=complex) # -2 for len since we remove boundary
-psi_series_forward[0] = psi_0
+#psi_series_forward[0] =  psi_0 # ground state for stability testing
+psi_series_forward[0] = np.exp(-(CPnts_mapped - 0.2)**2 / 1.0)/np.sqrt(np.pi)
 bndyErr = []
 for i in range(nt_steps):
     H =  H_func(psi_series_forward[i],psi_series_forward[i],BC=True)
     # compute predictor step using chebyshev expansion of the propagator
     psi_predict = solvers.prop_cheb(psi_series_forward[i],H,dt=0.5*delta_t,prop_order=prop_order,weights=int_weights)
     #psi_predict = solvers.prop(psi_series_forward[i],H,dt=0.5*delta_t,prop_order=prop_order,weights=int_weights)
-    
+
     # recompute the Hamiltonian with the predictor WFs
     H = H_func(psi_predict,psi_predict,BC=True)
-    
+
     # Now compute the full time step.
     psi_series_forward[i+1] = solvers.prop_cheb(psi_series_forward[i],H,dt=delta_t,prop_order=prop_order,weights=int_weights)
     #psi_series_forward[i+1] = solvers.prop(psi_series_forward[i],H,dt=delta_t,prop_order=prop_order,weights=int_weights)
-    
+
     if i % 500 == 0:
         plt.plot(CPnts_mapped,np.real(psi_series_forward[i+1]),label='real')
         plt.plot(CPnts_mapped,np.imag(psi_series_forward[i+1]),label='img')
-        plt.plot(CPnts_mapped,np.abs(psi_series_forward[i+1]),label='rho')
+        plt.plot(CPnts_mapped,psi_series_forward[i+1]*np.conjugate(psi_series_forward[i+1]),label='rho')
         plt.plot(CPnts_mapped,V_HO_grid,label='HO Potential')
         plt.title(f't = {round(i*delta_t,4)}')
-        plt.ylim([-1.5,1.5])
+        plt.ylim([-1,1])
         #plt.xlim([-3,3])
         plt.legend()
         plt.show()
-    
+
