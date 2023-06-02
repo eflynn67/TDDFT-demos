@@ -1,7 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.integrate import solve_bvp
-from scipy import special
+
 
 def discrete_der(data,h):
     ## uses 2nd order finite difference scheme to calculate a derivative
@@ -23,9 +21,6 @@ def cl_period(x,V,E,h):
     T = 2.0*np.trapz(integrand,dx=h)
     return T
 
-def get_tp():
-    return
-
 def action(x,h,V,params):
     S = np.zeros(x.shape,dtype='complex')
     dxdt = discrete_der(x,h)
@@ -40,3 +35,43 @@ def normalize(funcArr,weights):
         norm += weights[i]*funcArr[i]*np.conj(funcArr[i])
     norm = np.sqrt(norm)
     return norm
+
+def getMax_n(N,Z):
+    '''
+    Based on N and Z, return the maximum principle quantum number n needed to 
+    define all the single particle states
+
+    Parameters
+    ----------
+    N : INTEGER
+        Number of neutrons.
+    Z : INTEGER
+        Number of Protons.
+
+    Returns
+    -------
+    n : INTEGER.
+        principle quantum number
+    '''
+    n  = 0
+    return n
+
+def getMax_l(N,Z):
+    '''
+    Based on N and Z, return the maximum orbital quantum number l needed to 
+    define all the single particle states.
+
+    Parameters
+    ----------
+    N : INTEGER
+        Number of neutrons.
+    Z : INTEGER
+        Number of Protons.
+
+    Returns
+    -------
+    l : INTEGER
+        orbital angular momentum.
+    '''
+    l = 0
+    return l
