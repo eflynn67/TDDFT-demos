@@ -1,11 +1,13 @@
 import numpy as np
-
 import scipy as sci
 from scipy import special
 import matplotlib.pyplot as plt
+import sys
+
 import matrix
 import potentials
-import sys
+import wf_init
+
 # import 1d solver
 sys.path.insert(0, './solvers')
 import utilities
@@ -25,9 +27,8 @@ hb2m0 = 20.735530 # expression for hbar^2 /2mp
 coulomb = False # option for to turn on coulomb force on proton
 
 s = .5 #spin of single particle.
-# based on N_neu and Z_pro, get the maximum n and l. 
-nmax = utilities.getMax_n(N_neu, Z_pro) # max quantum number n to solve for
-lmax = utilities.getMax_l(N_neu, Z_pro) # max orbital angular momentum to solve for
+
+
 
 Vls = 22 - 14*(N_neu - Z_pro)/(N_neu + Z_pro)# spin orbit strength from Bohr and Mottelson
 V0 = -51 + 33*(N_neu - Z_pro)/(N_neu + Z_pro) # MeV WS strength From Bohr and Mottelson
@@ -51,11 +52,43 @@ N = 301 ## number of collocation points
 currentInterval = (-1,1) # interval the derivatives are defined on.
 targetInterval = (lb,rb) ## interval on real space to solve on
 
-
-
 params = {'V0': V0,'R':R,'r0':r0,'a':a,'e2':e2,'r_cutoff': r_cutoff,'Vls': Vls,\
-          'Z':Z_pro,'N':N_neu,'hb2m0':hb2m0,'kappa':kappa}
+          'Z_pro':Z_pro,'N_neu':N_neu,'hb2m0':hb2m0,'kappa':kappa,'N':N}
+    
+    
+###############################################################################
+# Define Collocation points
+###############################################################################
+# Define chebyshev points in the interval [-1,1]
+GL_func = spec.GaussLobatto()
+CPnts,weights = GL_func.chebyshev(N)
 
 
+# Define derivative matrix at the new Cpnts
+beta = 0.8
+coord_trans = spec.coord_transforms(currentInterval,targetInterval)
+#transform = spec.coord_transforms(interval=targetInterval)
+CPnts_shift,dgdy_arc = coord_trans.arcTransform(CPnts,beta)
 
+# Define derivative matrix at the new Cpnts
+A = np.diag(1.0/dgdy_arc)
+
+## First transform the interval of points [-1,1] to the physical interval
+
+CPnts_mapped,dgdy_affine  = coord_trans.inv_affine(CPnts_shift)
+# define derivative matrix on the mapped interval
+D_1 = np.matmul(A,spec.DerMatrix().getCheb(CPnts))/dgdy_affine
+
+# define integration weights
+int_weights = spec.GaussLobatto().getDx(CPnts_shift)*dgdy_affine
+
+###############################################################################
+
+#H_func = matrix.spec_H_func(N, CPnts_mapped,D_1,params)
+
+###############################################################################
+# Set up initial wavefunctions
+###############################################################################
+
+sp_states = wf_init.woodSaxon(CPnts_mapped,D_1,params)
 

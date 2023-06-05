@@ -35,10 +35,42 @@ def normalize(funcArr,weights):
         norm += weights[i]*funcArr[i]*np.conj(funcArr[i])
     norm = np.sqrt(norm)
     return norm
-
-def getMax_n(N,Z):
+def _getJJ_n(k):
     '''
-    Based on N and Z, return the maximum principle quantum number n needed to 
+    calculates the sequence of magic numbers in JJ coupling scheme
+    Taken from Alex brown structure notes (2020)
+    Parameters
+    ----------
+    k : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    '''
+    return int((k**3 + 5*k)/3)
+def _getLS_n(k):
+    '''
+    calculates the sequence of magic numbers in LS coupling scheme.
+    Taken from Alex brown structure notes (2020)
+
+    Parameters
+    ----------
+    k : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    '''
+    return int(k*(k+1)*(k+2)/3)
+def getMax_n_l(N):
+    '''
+    Based on N and Z, return the maximum major quantum number n needed to 
     define all the single particle states
 
     Parameters
@@ -51,27 +83,11 @@ def getMax_n(N,Z):
     Returns
     -------
     n : INTEGER.
-        principle quantum number
+        major quantum number
     '''
-    n  = 0
-    return n
-
-def getMax_l(N,Z):
-    '''
-    Based on N and Z, return the maximum orbital quantum number l needed to 
-    define all the single particle states.
-
-    Parameters
-    ----------
-    N : INTEGER
-        Number of neutrons.
-    Z : INTEGER
-        Number of Protons.
-
-    Returns
-    -------
-    l : INTEGER
-        orbital angular momentum.
-    '''
-    l = 0
-    return l
+    k = 0
+    Nk = 0
+    while Nk < N:
+        k += 1
+        Nk = _getLS_n(k)
+    return Nk,k

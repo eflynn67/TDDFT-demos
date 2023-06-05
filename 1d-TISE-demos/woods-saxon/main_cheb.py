@@ -24,12 +24,12 @@ targetInterval = (lb,rb) ## interval on real space to solve on
 hb2m0 = 20.735530 # expression for hbar^2 /2mp
 
 coulomb = False # option for to turn on coulomb force on proton
-Z = 20
-Nneu = 20
+Z = 82
+Nneu = 126
 
 s = .5
-nmax = 0 # max quantum number n to solve for
-lmax = 0 # max orbital angular momentum to solve for
+nmax = 6 # max quantum number n to solve for
+lmax = 6 # max orbital angular momentum to solve for
 
 Vls = 22 - 14*(Nneu - Z)/(Nneu + Z)# spin orbit strength from Bohr and Mottelson
 V0 = -51 + 33*(Nneu - Z)/(Nneu + Z) # MeV WS strength From Bohr and Mottelson
@@ -118,8 +118,11 @@ for l in lArr:
         Vc = matrix.potentials.coulomb(CPnts_mapped,params)
         Vcent = matrix.potentials.centrifugal(CPnts_mapped,l)
         Vso = matrix.potentials.spin_orbit(CPnts_mapped,j,l,params)
-        Vtot = params['hb2m0']*Vcent + Vws + Vso
-        
+        if coulomb ==True:
+            Vtot = params['hb2m0']*Vcent + Vws + Vso + Vc
+        else: 
+            Vtot = params['hb2m0']*Vcent + Vws + Vso
+        '''
         #plot the potential
         plt.plot(CPnts_mapped,Vtot)
         plt.title(f'V(r),  l = {l}, j = {j}')
@@ -127,7 +130,7 @@ for l in lArr:
         plt.xlabel('r')
         plt.ylabel('V(r)')
         plt.show()
-
+        '''
         #construct the Hamiltonian
         H = H_func.spherical_ws(j,l,params,coulomb=coulomb,BC=True)
         # solve for evals and evects
@@ -146,8 +149,7 @@ for l in lArr:
         sol = sols[0]
         norm_spec = utilities.normalize(sol,int_weights)
         sol = sol/norm_spec
-
-
+        '''
         plt.plot(CPnts_mapped,sol,label='Cheby')
         plt.plot(grid,sol_FD,label='FD')
         plt.title(f'Wavefunction l = {l}, j = {j}')
@@ -155,6 +157,7 @@ for l in lArr:
         plt.ylabel(r'$\psi(r)$')
         plt.legend()
         plt.show()
+        '''
         for n in nArr:
             print(f'Chebyshev Energy ({n},{l},{j}) = {engs[n]}')
 
